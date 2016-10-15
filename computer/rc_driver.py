@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import math
 
-# distance data measured by ultrasonic sensor
+# distance data measured by ultrasonic sensor (THIS WILL BE CALLED UPON AS A GLOBAL VARIABLE BELOW)
 sensor_data = " "
 
 
@@ -78,8 +78,8 @@ class ObjectDetection(object):
         v = 0
 
         # minimum value to proceed traffic light state validation
-        threshold = 150     
-        
+        threshold = 150
+
         # detection
         cascade_obj = cascade_classifier.detectMultiScale(
             gray_image,
@@ -98,27 +98,27 @@ class ObjectDetection(object):
             # stop sign
             if width/height == 1:
                 cv2.putText(image, 'STOP', (x_pos, y_pos-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-            
+
             # traffic lights
             else:
                 roi = gray_image[y_pos+10:y_pos + height-10, x_pos+10:x_pos + width-10]
                 mask = cv2.GaussianBlur(roi, (25, 25), 0)
                 (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(mask)
-                
+
                 # check if light is on
                 if maxVal - minVal > threshold:
                     cv2.circle(roi, maxLoc, 5, (255, 0, 0), 2)
-                    
+
                     # Red light
                     if 1.0/8*(height-30) < maxLoc[1] < 4.0/8*(height-30):
                         cv2.putText(image, 'Red', (x_pos+5, y_pos-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
                         self.red_light = True
-                    
+
                     # Green light
                     elif 5.5/8*(height-30) < maxLoc[1] < height-30:
                         cv2.putText(image, 'Green', (x_pos+5, y_pos - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                         self.green_light = True
-    
+
                     # yellow light
                     #elif 4.0/8*(height-30) < maxLoc[1] < 5.5/8*(height-30):
                     #    cv2.putText(image, 'Yellow', (x_pos+5, y_pos - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
@@ -132,10 +132,10 @@ class SensorDataHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         global sensor_data
-        try:
+        try:                                                    # Always checking for obstacles.
             while self.data:
                 self.data = self.request.recv(1024)
-                sensor_data = round(float(self.data), 1)
+                sensor_data = round(float(self.data), 1)        # Updates when obstacle is detected.
                 #print "{} sent:".format(self.client_address[0])
                 print sensor_data
         finally:
@@ -149,7 +149,7 @@ class VideoStreamHandler(SocketServer.StreamRequestHandler):
     # h2: traffic light
     h2 = 15.5 - 10
 
-    # create neural network
+    # CREATE NEURAL NETWORK
     model = NeuralNetwork()
     model.create()
 
@@ -179,24 +179,24 @@ class VideoStreamHandler(SocketServer.StreamRequestHandler):
         # stream video frames one by one
         try:
             while True:
-                stream_bytes += self.rfile.read(1024)
-                first = stream_bytes.find('\xff\xd8')
+                stream_bytes += self.rfile.read(1024)               '''What is rfile?'''
+                first = stream_bytes.find('\xff\xd8')               '''Again, what are these strings?'''
                 last = stream_bytes.find('\xff\xd9')
                 if first != -1 and last != -1:
                     jpg = stream_bytes[first:last+2]
                     stream_bytes = stream_bytes[last+2:]
-                    gray = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.CV_LOAD_IMAGE_GRAYSCALE)
+                    gray = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.CV_LOAD_IMAGE_GRAYSCALE)    '''might be deprecated'''
                     image = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.CV_LOAD_IMAGE_UNCHANGED)
 
                     # lower half of the image
                     half_gray = gray[120:240, :]
 
                     # object detection
-                    v_param1 = self.obj_detection.detect(self.stop_cascade, gray, image)
-                    v_param2 = self.obj_detection.detect(self.light_cascade, gray, image)
+                    v_param1 = self.obj_detection.detect(self.stop_cascade, gray, image)    '''Calls obj_detection, which is the class/method that draws the rectangles around detected objects'''
+                    v_param2 = self.obj_detection.detect(self.light_cascade, gray, image)   '''v_params are the returned v from obj_detection, representing the y camera coordinate of the target point 'P''''
 
                     # distance measurement
-                    if v_param1 > 0 or v_param2 > 0:
+                    if v_param1 > 0 or v_param2 > 0:                    '''If a detected object updates v_param1 or v_param2, then distance to either is calculated.'''
                         d1 = self.d_to_camera.calculate(v_param1, self.h1, 300, image)
                         d2 = self.d_to_camera.calculate(v_param2, self.h2, 100, image)
                         self.d_stop_sign = d1
@@ -207,16 +207,16 @@ class VideoStreamHandler(SocketServer.StreamRequestHandler):
 
                     # reshape image
                     image_array = half_gray.reshape(1, 38400).astype(np.float32)
-                    
-                    # neural network makes prediction
-                    prediction = self.model.predict(image_array)
+
+                    # NEURAL NETWORK MAKES PREDICTION
+                    prediction = self.model.predict(image_array)        '''This is where the NEURAL NETWORK comes into play, prediciting the correct driving action to take.'''
 
                     # stop conditions
                     if sensor_data is not None and sensor_data < 30:
                         print("Stop, obstacle in front")
                         self.rc_car.stop()
-                    
-                    elif 0 < self.d_stop_sign < 25 and stop_sign_active:
+
+                    elif 0 < self.d_stop_sign < 25 and stop_sign_active:    '''If within stopping region for a STOP sign....'''
                         print("Stop sign ahead")
                         self.rc_car.stop()
 
@@ -235,7 +235,7 @@ class VideoStreamHandler(SocketServer.StreamRequestHandler):
                             stop_flag = False
                             stop_sign_active = False
 
-                    elif 0 < self.d_light < 30:
+                    elif 0 < self.d_light < 30:                             '''If within stopping region for a traffic light....'''
                         #print("Traffic light ahead")
                         if self.obj_detection.red_light:
                             print("Red light")
@@ -246,14 +246,14 @@ class VideoStreamHandler(SocketServer.StreamRequestHandler):
                         elif self.obj_detection.yellow_light:
                             print("Yellow light flashing")
                             pass
-                        
+
                         self.d_light = 30
                         self.obj_detection.red_light = False
                         self.obj_detection.green_light = False
                         self.obj_detection.yellow_light = False
 
                     else:
-                        self.rc_car.steer(prediction)
+                        self.rc_car.steer(prediction)                       '''Else make prediction for how to steer the car.'''
                         self.stop_start = cv2.getTickCount()
                         self.d_stop_sign = 25
 

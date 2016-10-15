@@ -24,7 +24,7 @@ try:
         time.sleep(2)                       # give 2 secs for camera to initilize
         start = time.time()
         stream = io.BytesIO()
-        
+
         # send jpeg format video stream
         for foo in camera.capture_continuous(stream, 'jpeg', use_video_port = True):
             connection.write(struct.pack('<L', stream.tell()))

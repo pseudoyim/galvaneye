@@ -10,7 +10,7 @@ image_array = np.zeros((1, 38400))
 label_array = np.zeros((1, 4), 'float')
 training_data = glob.glob('testing_data/*.npz')
 
-for single_npz in training_data:
+for single_npz in training_data:                    ''' Isn't this the same data we used to train the model?  Should we have split the data at some point before? '''   
     with np.load(single_npz) as data:
         print data.files
         test_temp = data['train']
@@ -29,7 +29,7 @@ print test_labels.shape
 layer_sizes = np.int32([38400, 32, 4])
 model = cv2.ANN_MLP()
 model.create(layer_sizes)
-model.load('mlp_xml/mlp.xml')
+model.load('mlp_xml/mlp.xml')                       ''' This seeems off... official docs don't list a method for '.load' a model... '''
 
 # generate predictions
 e0 = cv2.getTickCount()
@@ -44,7 +44,7 @@ print 'Prediction:', prediction
 true_labels = test_labels.argmax(-1)
 print 'True labels:', true_labels
 
-print 'Testing...'
+print 'Evaluating model performance on test set...'
 num_correct = np.sum( true_labels == prediction )
 print(num_correct)
 test_rate = np.mean(prediction == true_labels)

@@ -9,7 +9,7 @@ class RCTest(object):
 
     def __init__(self):
         pygame.init()
-        self.ser = serial.Serial('/dev/tty.usbmodem1421', 115200, timeout=1)
+        self.ser = serial.Serial('/dev/cu.usbmodem1411', 115200, timeout=1)
         self.send_inst = True
         self.steer()
 
