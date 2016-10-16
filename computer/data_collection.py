@@ -31,7 +31,7 @@ class CollectTrainingData(object):
         # (Hamuchiwa's old code) self.ser = serial.Serial('/dev/tty.usbmodem1421', 115200, timeout=1)
         # self.ser = serial.Serial('/dev/cu.usbmodem1411', 115200, timeout=1)     # ? How exactly did this port get created?  Obtained port path from: python -m serial.tools.list_ports
         self.send_inst = True
-        self.duration = 200
+        self.duration = 400
 
         # create labels (aka the Y values; these will be the directional output to the arduino remote control)
         # Creates a 4x4 matrix, with 1's along the diagonal, upper left to bottom right:
@@ -102,19 +102,20 @@ class CollectTrainingData(object):
                     # auto = self.auto_canny(blurred)
 
                     # select lower half of the image. 0:120 would be the upper half of rows. 120:240 is the lower half. Selecting all columns.
-                    # DEPENDING ON WHICH CANNY FILTER IS BEST, replace 'image' below with that one. This will be the new 'region of interest' (roi)
+                    # DEPENDING ON WHICH CANNY FILTER IS BEST, replace '<image var>' below with that one. This will be the new 'region of interest' (roi)
                     roi = image[120:240, :]
 
                     # overlay click counts: cv2.putText(clicks_*)
                     cv2.putText(image, "FW: {}, LT: {}, RT: {}, REV: {}".format(clicks_forward, clicks_forward_left, clicks_forward_right, clicks_reverse), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
 
                     # save streamed images
+                    # DEPENDING ON WHICH CANNY FILTER IS BEST, replace '<image var>' below with that one. These will be the new saved streamed images.
                     cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), image)
 
                     # Display feeds on host (laptop)
-                    # cv2.imshow('image', image)
+                    cv2.imshow('image', image)
                     cv2.imshow('roi_image', roi)
-                    cv2.imshow('image, edges', np.hstack([image, wide, tight]))
+                    # cv2.imshow('image, edges', np.hstack([image, wide, tight]))
 
                     # reshape the roi image into one row array
                     temp_array = roi.reshape(1, 38400).astype(np.float32)
@@ -177,7 +178,7 @@ class CollectTrainingData(object):
             train_labels = label_array[1:, :]
 
             # save training data as a numpy file
-            np.savez('training_data_temp/test01.npz', train=train, train_labels=train_labels)       #''' What exactly does this look like? array of the data & label with 'train' and 'train_labels' as kw/arg? # np.savez(file, *args, **kwargs)'''
+            np.savez('training_data_temp/testFW2.npz', train=train, train_labels=train_labels)       #''' What exactly does this look like? array of the data & label with 'train' and 'train_labels' as kw/arg? # np.savez(file, *args, **kwargs)'''
 
             e2 = cv2.getTickCount()
             # calculate streaming duration
@@ -192,7 +193,9 @@ class CollectTrainingData(object):
 
         finally:
             self.connection.close()
-            self.server_socket.close()
+            self.server_socket.close
+            print 'Connection closed'
+            print 'Socket closed'
 
 if __name__ == '__main__':
     CollectTrainingData()
