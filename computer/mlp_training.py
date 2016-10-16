@@ -21,12 +21,14 @@ for single_npz in training_data:                        # single_npz == one npz 
         print train_temp.shape
         print train_labels_temp.shape
     image_array = np.vstack((image_array, train_temp))
-    label_array = np.vstack((label_array, train_labels_temp))       # '''Is this just reconstructing what was originally crammed into the .npz file?'''
+    label_array = np.vstack((label_array, train_labels_temp))
 
 train = image_array[1:, :]
 train_labels = label_array[1:, :]
-print train.shape
-print train_labels.shape
+
+print ''
+print 'Final shape of "train": ', train.shape
+print 'Final shape of "train_labels": ', train_labels.shape
 
 e00 = cv2.getTickCount()
 time0 = (e00 - e0)/ cv2.getTickFrequency()      # Returns the number of ticks per second.
@@ -56,21 +58,22 @@ layer_sizes = np.array([38400, 32, 4], dtype=np.uint8)          # Input: 38400 n
 
 
 model = cv2.ml.ANN_MLP_create()
-model.setLayerSizes(layer_sizes)
+model.setLayerSizes(np.array([4, 32, 4], dtype=np.uint8) )
 model.setTrainMethod(cv2.ml.ANN_MLP_BACKPROP)
 
-
-criteria = (cv2.TERM_CRITERIA_COUNT | cv2.TERM_CRITERIA_EPS, 500, 0.0001)       # Uses criteria count OR EPS ('Earnings per share'); either 500 iteration or move by atleast 0.0001 pt
-criteria2 = (cv2.TERM_CRITERIA_COUNT, 100, 0.001)                               # Uses criteria count ('Earnings per share'); either 100 iteration or move by atleast 0.001 pt
-params = dict(term_crit = criteria,
-               train_method = 'ANN_MLP_TRAIN_PARAMS_BACKPROP',                # Using BACKPROP (as opposed to RPROP, which is default).
-               bp_dw_scale = 0.001,                                             # alpha? Strength of the weight gradient term. The recommended value is about 0.1.
-               bp_moment_scale = 0.0 )                                          # Strength of the momentum term (the difference between weights on the 2 previous iterations). This parameter provides some inertia to smooth the random fluctuations of the weights. It can vary from 0 (the feature is disabled) to 1 and beyond. The value 0.1 or so is good enough
-
+#
+# criteria = (cv2.TERM_CRITERIA_COUNT | cv2.TERM_CRITERIA_EPS, 500, 0.0001)       # Uses criteria count OR EPS ('Earnings per share'); either 500 iteration or move by atleast 0.0001 pt
+# criteria2 = (cv2.TERM_CRITERIA_COUNT, 100, 0.001)                               # Uses criteria count ('Earnings per share'); either 100 iteration or move by atleast 0.001 pt
+# params = dict(term_crit = criteria,
+#                train_method = 'ANN_MLP_TRAIN_PARAMS_BACKPROP',                # Using BACKPROP (as opposed to RPROP, which is default).
+#                bp_dw_scale = 0.001,                                             # alpha? Strength of the weight gradient term. The recommended value is about 0.1.
+#                bp_moment_scale = 0.0 )                                          # Strength of the momentum term (the difference between weights on the 2 previous iterations). This parameter provides some inertia to smooth the random fluctuations of the weights. It can vary from 0 (the feature is disabled) to 1 and beyond. The value 0.1 or so is good enough
+#
 
 # train MLP
 print 'Training MLP ...'
-num_iter = model.train(train, train_labels, None, params=params)              # 'None' param is for sampleIdx; Optional integer vector indicating the samples (rows of inputs and outputs) that are taken into account.
+# num_iter = model.train(train, train_labels, params=params)              # 'None' param is for sampleIdx; Optional integer vector indicating the samples (rows of inputs and outputs) that are taken into account.
+num_iter = model.train(train, cv2.ml.ROW_SAMPLE, train_labels)
 
 
 # set end time

@@ -142,6 +142,7 @@ class CollectTrainingData(object):
                                 label_array = np.vstack((label_array, self.k[1]))   # self.k[1] = [ 0.,  1.,  0.,  0.]
                                 saved_frame += 1
                                 clicks_forward_right += 1
+                                car.right(200)
                                 car.forward_right(self.duration)
                                 car.right(700)
 
@@ -151,6 +152,7 @@ class CollectTrainingData(object):
                                 label_array = np.vstack((label_array, self.k[0]))   # self.k[0] = [ 1.,  0.,  0.,  0.]
                                 saved_frame += 1
                                 clicks_forward_left += 1
+                                car.left(200)
                                 car.forward_left(self.duration)
                                 car.left(700)
 
