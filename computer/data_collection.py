@@ -31,7 +31,7 @@ class CollectTrainingData(object):
         # (Hamuchiwa's old code) self.ser = serial.Serial('/dev/tty.usbmodem1421', 115200, timeout=1)
         # self.ser = serial.Serial('/dev/cu.usbmodem1411', 115200, timeout=1)     # ? How exactly did this port get created?  Obtained port path from: python -m serial.tools.list_ports
         self.send_inst = True
-        self.duration = 400
+        self.duration = 200
 
         # create labels (aka the Y values; these will be the directional output to the arduino remote control)
         # Creates a 4x4 matrix, with 1's along the diagonal, upper left to bottom right:
