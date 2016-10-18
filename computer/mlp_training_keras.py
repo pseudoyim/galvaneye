@@ -18,7 +18,7 @@ e0 = cv2.getTickCount()         # Returns the number of ticks after a certain ev
 
 # Load training data, unpacking what's in the saved .npz files.
 image_array = np.zeros((1, 38400))
-label_array = np.zeros((1, 4), 'float')
+label_array = np.zeros((1, 3), 'float')
 training_data = glob.glob('training_data/*.npz')        # Finds filenames matching specified path or pattern.
 
 for single_npz in training_data:                        # single_npz == one array representing one array of saved image data and user input label for that image.
@@ -44,7 +44,7 @@ model = Sequential()
 
 e00 = cv2.getTickCount()
 time0 = (e00 - e0)/ cv2.getTickFrequency()      # Returns the number of ticks per second.
-print 'Total time taken to load image data:', time0
+print 'Total time taken to load image data:', time0, 'seconds'
 
 # Get start time of Training
 e1 = cv2.getTickCount()
@@ -54,16 +54,16 @@ e1 = cv2.getTickCount()
 print 'Training...'
 # Dense(n) is a fully-connected layer with n hidden units in the first layer.
 # You must specify the expected input data shape (e.g. input_dim=20 for 20-dimensional input vector).
-model.add(Dense(300, input_dim=38400, init='uniform'))
+model.add(Dense(32, input_dim=38400, init='uniform'))
 model.add(Dropout(0.2))
+# model.add(Activation('relu'))
+# model.add(Dense(15, init='uniform' ))
+# model.add(Dropout(0.2))
 model.add(Activation('relu'))
-model.add(Dense(32, init='uniform' ))
-model.add(Dropout(0.2))
-model.add(Activation('relu'))
-model.add(Dense(4, init='uniform'))
+model.add(Dense(3, init='uniform'))
 model.add(Activation('softmax'))
 
-sgd = SGD(lr=0.05, decay=1e-6, momentum=0.9, nesterov=True)
+sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
               metrics=['accuracy'])

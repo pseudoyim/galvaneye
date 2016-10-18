@@ -9,7 +9,6 @@ class ManualDrive(object):
     def __init__(self):
 
         self.send_inst = True
-        self.duration = 200
         pygame.init()
         self.drive()
 
@@ -24,23 +23,23 @@ class ManualDrive(object):
 
                     # FORWARD
                     if key_input[pygame.K_UP]:
-                        car.forward(self.duration)
+                        car.forward(200)
 
                     # FORWARD_RIGHT
                     elif key_input[pygame.K_RIGHT]:
-                        car.right(200)
-                        car.forward_right(self.duration)
-                        car.right(700)
+                        car.right(300)
+                        car.forward_right(300)
+                        car.right(500)
 
                     # FORWARD_LEFT
                     elif key_input[pygame.K_LEFT]:
-                        car.left(200)
-                        car.forward_left(self.duration)
-                        car.left(700)
+                        car.left(300)
+                        car.forward_left(300)
+                        car.left(500)
 
                     # REVERSE
                     elif key_input[pygame.K_DOWN]:
-                        car.reverse(self.duration)
+                        car.reverse(200)
 
 
                     elif key_input[pygame.K_x] or key_input[pygame.K_q]:

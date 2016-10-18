@@ -1,4 +1,4 @@
-__author__ = 'zhengwang'
+__author__ = 'zhengwang & paulyim'
 
 import cv2
 import numpy as np
@@ -8,7 +8,7 @@ import keras
 
 # load training data
 image_array = np.zeros((1, 38400))
-label_array = np.zeros((1, 4), 'float')
+label_array = np.zeros((1, 3), 'float')
 training_data = glob.glob('testing_data/*.npz')
 
 for single_npz in training_data:                    #''' Isn't this the same data we used to train the model?  Should we have split the data at some point before? '''

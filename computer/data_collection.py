@@ -31,7 +31,6 @@ class CollectTrainingData(object):
         # (Hamuchiwa's old code) self.ser = serial.Serial('/dev/tty.usbmodem1421', 115200, timeout=1)
         # self.ser = serial.Serial('/dev/cu.usbmodem1411', 115200, timeout=1)     # ? How exactly did this port get created?  Obtained port path from: python -m serial.tools.list_ports
         self.send_inst = True
-        self.duration = 200
 
         # create labels (aka the Y values; these will be the directional output to the arduino remote control)
         # Creates a 4x4 matrix, with 1's along the diagonal, upper left to bottom right:
@@ -39,19 +38,20 @@ class CollectTrainingData(object):
         #        [ 0.,  1.,  0.,  0.],
         #        [ 0.,  0.,  1.,  0.],
         #        [ 0.,  0.,  0.,  1.]])
-        self.k = np.zeros((4, 4), 'float')
-        for i in range(4):
+        self.k = np.zeros((3, 3), 'float')
+        for i in range(3):
             self.k[i, i] = 1
-        self.temp_label = np.zeros((1, 4), 'float')
+        self.temp_label = np.zeros((1, 3), 'float')
 
         pygame.init()
         self.collect_image()
-        # self.auto_canny()
+        self.auto_canny()
 
 
-    def auto_canny(self, img, sigma=0.33):
+    def auto_canny(self,img):
     	# compute the median of the single channel pixel intensities
-    	v = np.median(img)
+        sigma=0.33
+        v = np.median(img)
 
     	# apply automatic Canny edge detection using the computed median
     	lower = int(max(0, (1.0 - sigma) * v))
@@ -76,7 +76,7 @@ class CollectTrainingData(object):
         print 'Start collecting images...'
         e1 = cv2.getTickCount()
         image_array = np.zeros((1, 38400))      # Image resolution is 320x240. But we are lopping off the top half, so actually 320x120. 320 * 120 = 38400.
-        label_array = np.zeros((1, 4), 'float')
+        label_array = np.zeros((1, 3), 'float')
 
         # stream video frames one by one
         try:
@@ -99,23 +99,23 @@ class CollectTrainingData(object):
                     # images with Canny filter applied:
                     wide = cv2.Canny(blurred, 10, 200)
                     tight = cv2.Canny(blurred, 225, 250)
-                    # auto = self.auto_canny(blurred)
+                    auto = self.auto_canny(blurred)
 
                     # select lower half of the image. 0:120 would be the upper half of rows. 120:240 is the lower half. Selecting all columns.
                     # DEPENDING ON WHICH CANNY FILTER IS BEST, replace '<image var>' below with that one. This will be the new 'region of interest' (roi)
-                    roi = image[120:240, :]
+                    roi = auto[120:240, :]
 
                     # overlay click counts: cv2.putText(clicks_*)
                     cv2.putText(image, "FW: {}, LT: {}, RT: {}, REV: {}".format(clicks_forward, clicks_forward_left, clicks_forward_right, clicks_reverse), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
 
                     # save streamed images
                     # DEPENDING ON WHICH CANNY FILTER IS BEST, replace '<image var>' below with that one. These will be the new saved streamed images.
-                    cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), image)
+                    cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), auto)
 
                     # Display feeds on host (laptop)
                     cv2.imshow('image', image)
                     cv2.imshow('roi_image', roi)
-                    # cv2.imshow('image, edges', np.hstack([image, wide, tight]))
+                    # cv2.imshow('original image & edge', np.hstack([image, auto]))
 
                     # reshape the roi image into one row array
                     temp_array = roi.reshape(1, 38400).astype(np.float32)
@@ -134,7 +134,7 @@ class CollectTrainingData(object):
                                 label_array = np.vstack((label_array, self.k[2]))   # self.k[2] = [ 0.,  0.,  1.,  0.]
                                 saved_frame += 1
                                 clicks_forward += 1
-                                car.forward(self.duration)
+                                car.forward(200)
 
                             # FORWARD_RIGHT
                             elif key_input[pygame.K_RIGHT]:
@@ -142,8 +142,8 @@ class CollectTrainingData(object):
                                 label_array = np.vstack((label_array, self.k[1]))   # self.k[1] = [ 0.,  1.,  0.,  0.]
                                 saved_frame += 1
                                 clicks_forward_right += 1
-                                car.right(200)
-                                car.forward_right(self.duration)
+                                car.right(300)
+                                car.forward_right(300)
                                 car.right(700)
 
                             # FORWARD_LEFT
@@ -152,17 +152,17 @@ class CollectTrainingData(object):
                                 label_array = np.vstack((label_array, self.k[0]))   # self.k[0] = [ 1.,  0.,  0.,  0.]
                                 saved_frame += 1
                                 clicks_forward_left += 1
-                                car.left(200)
-                                car.forward_left(self.duration)
+                                car.left(300)
+                                car.forward_left(300)
                                 car.left(700)
 
-                            # REVERSE
-                            elif key_input[pygame.K_DOWN]:
-                                image_array = np.vstack((image_array, temp_array))
-                                label_array = np.vstack((label_array, self.k[3]))   # self.k[3] = [ 0.,  0.,  0.,  1.]
-                                saved_frame += 1
-                                clicks_reverse += 1
-                                car.reverse(self.duration)
+                            # # REVERSE; NOT USING
+                            # elif key_input[pygame.K_DOWN]:
+                            #     image_array = np.vstack((image_array, temp_array))
+                            #     label_array = np.vstack((label_array, self.k[3]))   # self.k[3] = [ 0.,  0.,  0.,  1.]
+                            #     saved_frame += 1
+                            #     clicks_reverse += 1
+                            #     car.reverse(200)
 
 
                             elif key_input[pygame.K_x] or key_input[pygame.K_q]:
@@ -180,7 +180,7 @@ class CollectTrainingData(object):
             train_labels = label_array[1:, :]
 
             # save training data as a numpy file
-            np.savez('training_data_temp/testFW2.npz', train=train, train_labels=train_labels)       #''' What exactly does this look like? array of the data & label with 'train' and 'train_labels' as kw/arg? # np.savez(file, *args, **kwargs)'''
+            np.savez('training_data_temp/testNAME.npz', train=train, train_labels=train_labels)       #''' What exactly does this look like? array of the data & label with 'train' and 'train_labels' as kw/arg? # np.savez(file, *args, **kwargs)'''
 
             e2 = cv2.getTickCount()
             # calculate streaming duration
