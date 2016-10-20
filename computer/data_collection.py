@@ -75,6 +75,8 @@ class CollectTrainingData(object):
         # collect images for training
         print 'Start collecting images...'
         e1 = cv2.getTickCount()
+
+        # image_array and label_array each start off as one row of zeros. As images are added, they are vstacked from below.
         image_array = np.zeros((1, 38400))      # Image resolution is 320x240. But we are lopping off the top half, so actually 320x120. 320 * 120 = 38400.
         label_array = np.zeros((1, 3), 'float')
 
@@ -131,7 +133,7 @@ class CollectTrainingData(object):
                             # FORWARD
                             if key_input[pygame.K_UP]:
                                 image_array = np.vstack((image_array, temp_array))
-                                label_array = np.vstack((label_array, self.k[2]))   # self.k[2] = [ 0.,  0.,  1.,  0.]
+                                label_array = np.vstack((label_array, self.k[2]))   # self.k[2] = [ 0.,  0.,  1.]
                                 saved_frame += 1
                                 clicks_forward += 1
                                 car.forward(200)
@@ -139,7 +141,7 @@ class CollectTrainingData(object):
                             # FORWARD_RIGHT
                             elif key_input[pygame.K_RIGHT]:
                                 image_array = np.vstack((image_array, temp_array))
-                                label_array = np.vstack((label_array, self.k[1]))   # self.k[1] = [ 0.,  1.,  0.,  0.]
+                                label_array = np.vstack((label_array, self.k[1]))   # self.k[1] = [ 0.,  1.,  0.]
                                 saved_frame += 1
                                 clicks_forward_right += 1
                                 car.right(300)
@@ -149,7 +151,7 @@ class CollectTrainingData(object):
                             # FORWARD_LEFT
                             elif key_input[pygame.K_LEFT]:
                                 image_array = np.vstack((image_array, temp_array))
-                                label_array = np.vstack((label_array, self.k[0]))   # self.k[0] = [ 1.,  0.,  0.,  0.]
+                                label_array = np.vstack((label_array, self.k[0]))   # self.k[0] = [ 1.,  0.,  0.]
                                 saved_frame += 1
                                 clicks_forward_left += 1
                                 car.left(300)
