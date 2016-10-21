@@ -177,13 +177,13 @@ class CollectTrainingData(object):
                             # self.ser.write(chr(0))                                  # chr(0) == 00000000
                             break
 
-            # save training images and labels
+            # save training images and labels (selects row 1 on down because the row 0 is just zeros)
             train = image_array[1:, :]
             train_labels = label_array[1:, :]
 
             # save training data as a numpy file
-            np.savez('training_data_temp/testNAME.npz', train=train, train_labels=train_labels)       #''' What exactly does this look like? array of the data & label with 'train' and 'train_labels' as kw/arg? # np.savez(file, *args, **kwargs)'''
-
+            #''' What exactly does this look like? array of the data & label with 'train' and 'train_labels' as kw/arg? # np.savez(file, *args, **kwargs)'''
+            np.savez('training_data_temp/testNAME.npz', train=train, train_labels=train_labels)
             e2 = cv2.getTickCount()
             # calculate streaming duration
             time0 = (e2 - e1) / cv2.getTickFrequency()
