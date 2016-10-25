@@ -14,6 +14,9 @@ import numpy as np
 import cv2
 import glob
 import sys
+import time
+import os
+import shutil
 
 class ImageFilterMultiplier(object):
 
@@ -35,7 +38,7 @@ class ImageFilterMultiplier(object):
         # self.loc_originals_label_array     = 'training_images/label_array_SUBSET.npz'
 
         # Location where final npz file will be saved (after filter application and multiplication are finished).
-        self.loc_final_save                = 'training_data_temp/train_sigma{}_NAME.npz'.format(str(self.sigma)[-2:])
+        self.loc_final_save                = 'training_data_temp/sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
 
         self.apply_filter()
         self.multiply()
@@ -171,6 +174,10 @@ class ImageFilterMultiplier(object):
         #''' What exactly does this look like? array of the data & label with 'train' and 'train_labels' as kw/arg? # np.savez(file, *args, **kwargs)'''
         np.savez(self.loc_final_save, train=train, train_labels=train_labels)
 
+        timestr = time.strftime('%Y%m%d_%H%M%S')
+        os.rename('./training_images', './imgs_{}'.format(timestr))
+        os.makedirs('./training_images')
+
         print 'Multiply (double) filtered images and labels: Completed'
         print ''
 
@@ -181,10 +188,8 @@ class ImageFilterMultiplier(object):
         print ''
         print 'Filter and Multiply successfully completed.'
         print ''
-        print 'REMEMBER:'
-        print '1. Update FINAL npz filename.
-        print '2. From \'trainig_images\' folder, copy ORIGINAL IMAGES to AWS s3.'
-        print '3. From \'trainig_images\' folder, copy ORIGINAL LABELS npz to s3.'
+        print 'REMEMBER: Upload final training data npz files to S3.'
+
 
 
 if __name__ == '__main__':
@@ -193,9 +198,8 @@ if __name__ == '__main__':
     if confirmation1 != 'y':
         sys.exit()
 
-    confirmation2 = raw_input('Confirmed the directory \'training_images_filtered\' is empty? [y/n] ')
-    if confirmation2 != 'y':
-        sys.exit()
+    # DELETE the contents of 'training_images_filtered'
+    shutil.rmtree('./training_images_filtered')
+    os.makedirs('./training_images_filtered')
 
-    print ''
     ImageFilterMultiplier(sigma=0.33)

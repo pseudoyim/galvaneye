@@ -1,6 +1,6 @@
 '''
 This module does the following:
-  1. Collects original images of what the car sees each time a direction is inputted by the driver.
+  1. Collects original images of what the car sees each time a direction is inputted by the driver. Images saved to 'training_images'.
   2. Collects direction inputs as an array, each new one being vstacked below the previous. Compiles to npz file at the end.
 '''
 
@@ -11,8 +11,9 @@ import pygame
 from pygame.locals import *
 import socket
 import car
-import argparse
 import glob
+import time
+
 
 class ImageCollect(object):
 
@@ -51,17 +52,15 @@ class ImageCollect(object):
         clicks_forward       = 0
         clicks_forward_left  = 0
         clicks_forward_right = 0
-        clicks_reverse       = 0
 
         print 'Start collecting images...'
-        e1 = cv2.getTickCount()
 
         label_array = np.zeros((1, 3), 'float')
 
         # Stream video frames one by one.
         try:
             stream_bytes = ' '
-            frame = 1
+            frame = 0
             while self.send_inst:
                 stream_bytes += self.connection.read(1024)
                 first = stream_bytes.find('\xff\xd8')           # ? What is this string and where did it come from?
@@ -70,15 +69,12 @@ class ImageCollect(object):
                     jpg = stream_bytes[first:last + 2]
                     stream_bytes = stream_bytes[last + 2:]
 
-                    # 'image' (original, in grayscale) ; 'roi' is the bottom half that's going to be saved.
+                    # 'image' (original, in grayscale)
                     image = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
-                    roi = image[120:240, :]
 
                     # Overlay click counts: cv2.putText(clicks_*)
-                    cv2.putText(image, "FW: {}, LT: {}, RT: {}, REV: {}".format(clicks_forward, clicks_forward_left, clicks_forward_right, clicks_reverse), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
-
-                    # Save streamed images
-                    cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), image)
+                    clicks_total = clicks_forward + clicks_forward_left + clicks_forward_right
+                    cv2.putText(image, "FW: {}, LT: {}, RT: {}, TOTAL: {}".format(clicks_forward, clicks_forward_left, clicks_forward_right, clicks_total), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
 
                     # Display feeds on host (laptop)
                     cv2.imshow('image', image)
@@ -91,18 +87,18 @@ class ImageCollect(object):
                             # FORWARD
                             if key_input[pygame.K_UP]:
                                 # save streamed images
-                                cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), roi)
+                                cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), image)
                                 label_array = np.vstack((label_array, self.k[2]))   # self.k[2] = [ 0.,  0.,  1.]
                                 car.forward(200)
+                                clicks_forward += 1
                                 frame += 1
                                 total_frame += 1
                                 saved_frame += 1
-                                clicks_forward += 1
 
                             # FORWARD_RIGHT
                             elif key_input[pygame.K_RIGHT]:
                                 # save streamed images
-                                cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), roi)
+                                cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), image)
                                 label_array = np.vstack((label_array, self.k[1]))   # self.k[1] = [ 0.,  1.,  0.]
                                 car.right(300)
                                 car.forward_right(300)
@@ -111,12 +107,11 @@ class ImageCollect(object):
                                 frame += 1
                                 total_frame += 1
                                 saved_frame += 1
-                                clicks_forward += 1
 
                             # FORWARD_LEFT
                             elif key_input[pygame.K_LEFT]:
                                 # save streamed images
-                                cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), roi)
+                                cv2.imwrite('training_images/frame{:>05}.jpg'.format(frame), image)
                                 label_array = np.vstack((label_array, self.k[0]))   # self.k[0] = [ 1.,  0.,  0.]
                                 car.left(300)
                                 car.forward_left(300)
@@ -125,10 +120,13 @@ class ImageCollect(object):
                                 frame += 1
                                 total_frame += 1
                                 saved_frame += 1
-                                clicks_forward += 1
+
+                            # REVERSE; not saving images for this
+                            elif key_input[pygame.K_DOWN]:
+                                car.reverse(200)
 
                             elif key_input[pygame.K_x] or key_input[pygame.K_q]:
-                                print 'exit'
+                                print 'EXIT'
                                 self.send_inst = False
                                 break
 
@@ -136,7 +134,18 @@ class ImageCollect(object):
                             break
 
             train_labels = label_array[1:, :]
-            np.savez('training_images/label_array_NAME.npz', train_labels=train_labels)
+            np.savez('training_images/label_array_ORIGINALS.npz', train_labels=train_labels)
+
+            with open('img_collect_log.txt', 'a') as f:
+                f.write('Date: ' + time.strftime('%x') + '\n')
+                f.write('Time: ' + time.strftime('%X') + '\n')
+                f.write('Total frames: ' + str(total_frame) + '\n')
+                f.write('Saved frames: ' + str(saved_frame) + '\n')
+                f.write('Dropped frames: ' + str(total_frame - saved_frame) + '\n')
+                f.write('Forward clicks: ' + str(clicks_forward) + '\n')
+                f.write('Forward-left clicks: ' + str(clicks_forward_left) + '\n')
+                f.write('Forward-right clicks: ' + str(clicks_forward_right) + '\n')
+                f.write('-----------------------------\n')
 
             print 'Forward clicks: ', clicks_forward
             print 'Forward-left clicks: ', clicks_forward_left
@@ -151,11 +160,6 @@ class ImageCollect(object):
             self.server_socket.close
             print 'Connection closed'
             print 'Socket closed'
-
-            print ''
-            print 'REMEMBER TO CHANGE THE SAVED npz FILENAME!'
-            print ''
-
 
 if __name__ == '__main__':
     ImageCollect()
