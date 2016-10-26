@@ -145,3 +145,147 @@ Forward clicks: 66
 Forward-left clicks: 94
 Forward-right clicks: 0
 -----------------------------
+Date: 10/25/16
+Time: 20:15:12
+Total frames: 161
+Saved frames: 161
+Dropped frames: 0
+Forward clicks: 70
+Forward-left clicks: 3
+Forward-right clicks: 88
+-----------------------------
+Date: 10/25/16
+Time: 20:25:19
+Total frames: 166
+Saved frames: 166
+Dropped frames: 0
+Forward clicks: 72
+Forward-left clicks: 92
+Forward-right clicks: 2
+-----------------------------
+Date: 10/25/16
+Time: 20:35:00
+Total frames: 170
+Saved frames: 170
+Dropped frames: 0
+Forward clicks: 79
+Forward-left clicks: 3
+Forward-right clicks: 88
+-----------------------------
+Date: 10/25/16
+Time: 20:45:21
+Total frames: 163
+Saved frames: 163
+Dropped frames: 0
+Forward clicks: 72
+Forward-left clicks: 90
+Forward-right clicks: 1
+-----------------------------
+Date: 10/25/16
+Time: 20:53:36
+Total frames: 161
+Saved frames: 161
+Dropped frames: 0
+Forward clicks: 86
+Forward-left clicks: 3
+Forward-right clicks: 72
+-----------------------------
+Date: 10/25/16
+Time: 21:00:40
+Total frames: 160
+Saved frames: 160
+Dropped frames: 0
+Forward clicks: 67
+Forward-left clicks: 93
+Forward-right clicks: 0
+-----------------------------
+Date: 10/25/16
+Time: 21:09:36
+Total frames: 168
+Saved frames: 168
+Dropped frames: 0
+Forward clicks: 81
+Forward-left clicks: 2
+Forward-right clicks: 85
+-----------------------------
+Date: 10/25/16
+Time: 21:18:03
+Total frames: 167
+Saved frames: 167
+Dropped frames: 0
+Forward clicks: 68
+Forward-left clicks: 98
+Forward-right clicks: 1
+-----------------------------
+Date: 10/25/16
+Time: 21:26:10
+Total frames: 170
+Saved frames: 170
+Dropped frames: 0
+Forward clicks: 74
+Forward-left clicks: 3
+Forward-right clicks: 93
+-----------------------------
+Date: 10/25/16
+Time: 21:35:10
+Total frames: 170
+Saved frames: 170
+Dropped frames: 0
+Forward clicks: 79
+Forward-left clicks: 91
+Forward-right clicks: 0
+-----------------------------
+Date: 10/25/16
+Time: 21:44:36
+Total frames: 170
+Saved frames: 170
+Dropped frames: 0
+Forward clicks: 83
+Forward-left clicks: 1
+Forward-right clicks: 86
+-----------------------------
+Date: 10/25/16
+Time: 21:51:58
+Total frames: 171
+Saved frames: 171
+Dropped frames: 0
+Forward clicks: 63
+Forward-left clicks: 107
+Forward-right clicks: 1
+-----------------------------
+Date: 10/25/16
+Time: 22:05:32
+Total frames: 170
+Saved frames: 170
+Dropped frames: 0
+Forward clicks: 76
+Forward-left clicks: 2
+Forward-right clicks: 92
+-----------------------------
+Date: 10/25/16
+Time: 22:12:11
+Total frames: 170
+Saved frames: 170
+Dropped frames: 0
+Forward clicks: 65
+Forward-left clicks: 104
+Forward-right clicks: 1
+-----------------------------
+Date: 10/25/16
+Time: 22:18:31
+Total frames: 170
+Saved frames: 170
+Dropped frames: 0
+Forward clicks: 81
+Forward-left clicks: 1
+Forward-right clicks: 88
+-----------------------------
+Date: 10/25/16
+Time: 22:26:18
+Total frames: 175
+Saved frames: 175
+Dropped frames: 0
+Forward clicks: 70
+Forward-left clicks: 105
+Forward-right clicks: 0
+-----------------------------

@@ -17,15 +17,30 @@ import sys
 import time
 import os
 import shutil
+from tqdm import tqdm
 
 class ImageFilterMultiplier(object):
 
-    def __init__(self, sigma=0.33):
+    # 'subsequent' refers to whether this run is being performed (subsequently) on previously saved original images, but at a different sigma value.
+    def __init__(self, sigma=0.33, subsequent=False):
+
+        if not subsequent:
+            confirmation1 = raw_input('Confirmed the directory \'training_images\' contains the ORIGINAL images you want to filter & multiply? [y/n] ')
+            if confirmation1 != 'y':
+                sys.exit()
+
+        # DELETE the contents of 'training_images_filtered'
+        shutil.rmtree('./training_images_filtered')
+        os.makedirs(  './training_images_filtered')
+
         self.blurred = None
         self.sigma = sigma
 
         # Location of original images collected.
-        self.loc_originals_img             = 'training_images/*.jpg'
+        if subsequent:
+            self.loc_originals_img         = './imgs_2016*/*.jpg'
+        else:
+            self.loc_originals_img         = 'training_images/*.jpg'
 
         # Location of filtered images after filter is applied to each original image.
         self.loc_filtered_img_storage_each = 'training_images_filtered/frame{:>05}.jpg'
@@ -34,7 +49,10 @@ class ImageFilterMultiplier(object):
         self.loc_filtered_img_storage      = 'training_images_filtered/*.jpg'
 
         # Location of original label_array (to be multiplied).
-        self.loc_originals_label_array     = 'training_images/label_array_ORIGINALS.npz'
+        if subsequent:
+            self.loc_originals_label_array = './imgs_2016*/label_array_ORIGINALS.npz'
+        else:
+            self.loc_originals_label_array = 'training_images/label_array_ORIGINALS.npz'
         # self.loc_originals_label_array     = 'training_images/label_array_SUBSET.npz'
 
         # Location where final npz file will be saved (after filter application and multiplication are finished).
@@ -63,7 +81,7 @@ class ImageFilterMultiplier(object):
     def apply_filter(self):
 
         print ''
-        print '*** FILTER ***'
+        print '*** FILTER (at sigma={}) ***'.format(self.sigma)
         print 'Apply filter to original images: Initiated'
 
         frame = 1
@@ -71,7 +89,7 @@ class ImageFilterMultiplier(object):
         # original images, read them in one-by-one
         originals = glob.glob(self.loc_originals_img)
 
-        for each in originals:
+        for each in tqdm(originals):
 
             # image is a np matrix.
             image = cv2.imread(each, cv2.IMREAD_GRAYSCALE)
@@ -105,7 +123,9 @@ class ImageFilterMultiplier(object):
         # Filtered images, read them in one-by-one
         originals = glob.glob(self.loc_filtered_img_storage)
 
-        for each in originals:                        # single_npz == one npz file in the 'training_data' folder.
+        print 'Converting images to arrays, copy/flipping them, and vstacking...'
+        for each in tqdm(originals):                        # single_npz == one npz file in the 'training_data' folder.
+
             image = cv2.imread(each, cv2.IMREAD_GRAYSCALE)
 
             # Decode/reshape ORIGINAL image into np.array
@@ -117,19 +137,22 @@ class ImageFilterMultiplier(object):
             image_flipped = np.fliplr(image)
             temp_array_flipped = image_flipped.reshape(1, 38400).astype(np.float32)
             image_array = np.vstack((image_array, temp_array_flipped))
+            # print '{} has been added to image_array'.format(each)
+        print '...complete!'
 
         # *** HANDLES UPDATE OF 'label_array' ***
         # Flip the LEFT & RIGHT directional inputs, but leave FORWARD alone. (for directional target/label data)
         # array([[ 1.,  0.,  0.],   <-- FORWARD-LEFT
         #        [ 0.,  1.,  0.],   <-- FORWARD-RIGHT
         #        [ 0.,  0.,  1.]])  <-- FORWARD
-
+        print 'Updating label_arrays...'
         original_labels_shape = None
         labels_doubled = None
-        # Finds the npz file for the label_array when the ORIGINAL images were collected
-        training_data = glob.glob(self.loc_originals_label_array)
 
-        for single_npz in training_data:
+        # Finds the npz file for the label_array when the ORIGINAL images were collected
+        training_data_labels = glob.glob(self.loc_originals_label_array)
+
+        for single_npz in tqdm(training_data_labels):
 
             with np.load(single_npz) as data:
 
@@ -144,20 +167,20 @@ class ImageFilterMultiplier(object):
 
                 for row in array_list:
 
-                    # Append original row to final
+                    # First append original row to final, then...
                     final.append(row)
 
-                    # Forward-Left becomes Forward-Right
+                    # Forward-Left becomes Forward-Right, append
                     if row[0] == 1:
                         row = [0,1,0]
                         final.append(row)
 
-                    # Forward-Right becomes Forward-Left
+                    # Forward-Right becomes Forward-Left, append
                     elif row[1] == 1:
                         row = [1,0,0]
                         final.append(row)
 
-                    # Forward remains as Forward
+                    # Forward remains as Forward, append
                     elif row[2] == 1:
                         final.append(row)
                         continue
@@ -166,9 +189,13 @@ class ImageFilterMultiplier(object):
                 labels_doubled = np.array(final)
                 print 'Original + Flipped Labels dims: ', labels_doubled.shape
 
+                # vstack 'labels_doubled' onto 'label_array', from below
+                label_array = np.vstack((label_array, labels_doubled))
+        print '...complete!'
+
         # save training images and labels (selects row 1 on down because the row 0 is just zeros)
         train = image_array[1:, :]
-        train_labels = labels_doubled
+        train_labels = label_array[1:, :]
 
         # save training data as a numpy file
         #''' What exactly does this look like? array of the data & label with 'train' and 'train_labels' as kw/arg? # np.savez(file, *args, **kwargs)'''
@@ -178,6 +205,7 @@ class ImageFilterMultiplier(object):
         os.rename('./training_images', './imgs_{}'.format(timestr))
         os.makedirs('./training_images')
 
+        print ''
         print 'Multiply (double) filtered images and labels: Completed'
         print ''
 
@@ -191,15 +219,8 @@ class ImageFilterMultiplier(object):
         print 'REMEMBER: Upload final training data npz files to S3.'
 
 
-
 if __name__ == '__main__':
 
-    confirmation1 = raw_input('Confirmed the directory \'training_images\' contains the ORIGINAL images you want to filter & multiply? [y/n] ')
-    if confirmation1 != 'y':
-        sys.exit()
-
-    # DELETE the contents of 'training_images_filtered'
-    shutil.rmtree('./training_images_filtered')
-    os.makedirs('./training_images_filtered')
-
-    ImageFilterMultiplier(sigma=0.33)
+    ImageFilterMultiplier(sigma=0.33, subsequent=False)   # This is the only sigma for whihch subsequent=False
+    # ImageFilterMultiplier(sigma=0.20, subsequent=True)
+    # ImageFilterMultiplier(sigma=0.46, subsequent=True)
