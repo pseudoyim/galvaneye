@@ -38,7 +38,7 @@ class ImageFilterMultiplier(object):
 
         # Location of original images collected.
         if subsequent:
-            self.loc_originals_img         = './imgs_2016*/*.jpg'
+            self.loc_originals_img         = './images/imgs_2016*/*.jpg'
         else:
             self.loc_originals_img         = 'training_images/*.jpg'
 
@@ -50,7 +50,7 @@ class ImageFilterMultiplier(object):
 
         # Location of original label_array (to be multiplied).
         if subsequent:
-            self.loc_originals_label_array = './imgs_2016*/label_array_ORIGINALS.npz'
+            self.loc_originals_label_array = './images/imgs_2016*/label_array_ORIGINALS.npz'
         else:
             self.loc_originals_label_array = 'training_images/label_array_ORIGINALS.npz'
         # self.loc_originals_label_array     = 'training_images/label_array_SUBSET.npz'
@@ -137,7 +137,7 @@ class ImageFilterMultiplier(object):
             image_flipped = np.fliplr(image)
             temp_array_flipped = image_flipped.reshape(1, 38400).astype(np.float32)
             image_array = np.vstack((image_array, temp_array_flipped))
-            # print '{} has been added to image_array'.format(each)
+
         print '...complete!'
 
         # *** HANDLES UPDATE OF 'label_array' ***
@@ -216,11 +216,11 @@ class ImageFilterMultiplier(object):
         print ''
         print 'Filter and Multiply successfully completed.'
         print ''
-        print 'REMEMBER: Upload final training data npz files to S3.'
+        print 'REMEMBER: Upload final training data npz files to Amazon S3.'
 
 
 if __name__ == '__main__':
 
-    ImageFilterMultiplier(sigma=0.33, subsequent=False)   # This is the only sigma for whihch subsequent=False
+    ImageFilterMultiplier(sigma=0.33, subsequent=False)   # USE THIS WHEN COLLECTING NEW TRAINING DATA; this is the only sigma for whihch subsequent=False
     # ImageFilterMultiplier(sigma=0.20, subsequent=True)
     # ImageFilterMultiplier(sigma=0.46, subsequent=True)
