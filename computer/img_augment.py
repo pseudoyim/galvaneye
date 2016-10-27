@@ -10,6 +10,7 @@ import sys
 import time
 import os, os.path
 import shutil
+from img_filter_multiply import ImageFilterMultiplier
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 from tqdm import tqdm
 
@@ -43,7 +44,7 @@ class ImageAugmenter(object):
             print 'You want to augment, but you didn\'t give me an "n" parameter. Try again, fool.'
             sys.exit()
         self.augment()
-        # apply_filter()
+        ImageFilterMultiplier(sigma=0.33, subsequent=True, augment=True, n=self.n)
 
 
     def augment(self):
@@ -54,7 +55,7 @@ class ImageAugmenter(object):
         # Folders with original images, read them in one-by-one. They'll be in order according to the filepaths, which are ordered by timestamp.
         originals = glob.glob(self.loc_originals_img)
 
-        print 'Generating transformations of original images...'
+        print 'Generating {} augmentations for each of {} original images...'.format(self.n, len(originals))
 
         datagen = ImageDataGenerator(rotation_range=1,
                                      width_shift_range=0.02,
@@ -66,6 +67,10 @@ class ImageAugmenter(object):
 
         successes = 0
         for orig in tqdm(originals):
+            # Add a copy of original to './augmented' folder before adding its augmented copies.
+            shutil.copy(orig, './augmented')
+            os.rename('./augmented/{}'.format(orig[-14:]), './augmented/aug_{}_{:>05}_orig.jpg'.format(orig[-30:-15],successes))
+            successes += 1
 
             # For each original .jpg in folder
             img = load_img(orig)
@@ -91,15 +96,20 @@ class ImageAugmenter(object):
         # HACKY: Check if number of images in save_to_dir == number of successes.
         num_new_images = len([name for name in os.listdir('./augmented')])
         if successes != num_new_images:
-            print 'Number of successes: ', successes
-            print 'Number of augmented images: ', num_new_images
+            print 'Number of successes:', successes
+            print 'Number of augmented images:', num_new_images
             print successes, '!=', num_new_images
             print 'FAIL! Numbers don\'t match.'
             sys.exit()
 
         print 'Generate new augmented images: Completed'
+        print ''
+        print 'SUMMARY:'
+        print 'Number of original images:', len(originals)
+        print 'Number of original images + augmented images:', num_new_images
 
 
 if __name__ == '__main__':
 
     ImageAugmenter(n=2)
+    ImageFilterMultiplier(sigma=0.33, subsequent=True, augment=True, n=)

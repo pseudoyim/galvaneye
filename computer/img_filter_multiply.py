@@ -22,7 +22,7 @@ from tqdm import tqdm
 class ImageFilterMultiplier(object):
 
     # 'subsequent' refers to whether this run is being performed (subsequently) on previously saved original images, but at a different sigma value.
-    def __init__(self, sigma=0.33, subsequent=False):
+    def __init__(self, sigma=0.33, subsequent=False, augment=False, n=None):
 
         if not subsequent:
             confirmation1 = raw_input('Confirmed the directory \'training_images\' contains the ORIGINAL images you want to filter & multiply? [y/n] ')
@@ -34,29 +34,35 @@ class ImageFilterMultiplier(object):
         os.makedirs(  './training_images_filtered')
 
         self.blurred = None
+        self.n = n
         self.sigma = sigma
 
-        # Location of original images collected.
-        if subsequent:
+        # Location of images to filter and multiply (after making a copy and flipping it L to R).
+        if subsequent and not augment:
             self.loc_originals_img         = './images/imgs_2016*/*.jpg'
+        elif subsequent and augment:
+            self.loc_originals_img         = './augmented/*.jpg'
         else:
-            self.loc_originals_img         = 'training_images/*.jpg'
+            self.loc_originals_img         = './training_images/*.jpg'
 
-        # Location of filtered images after filter is applied to each original image.
-        self.loc_filtered_img_storage_each = 'training_images_filtered/frame{:>05}.jpg'
+        # Location to store filtered images after filter is applied to each original image.
+        self.loc_filtered_img_storage_each = './training_images_filtered/frame{:>05}.jpg'
 
         # Location of filtered images, referred to when 'multiply()' method commences, so it knows which images to multiply.
-        self.loc_filtered_img_storage      = 'training_images_filtered/*.jpg'
+        self.loc_filtered_img_storage      = './training_images_filtered/*.jpg'
 
         # Location of original label_array (to be multiplied).
         if subsequent:
-            self.loc_originals_label_array = './images/imgs_2016*/label_array_ORIGINALS.npz'
+            self.loc_originals_label_array = './images/imgs_2016*/label_array_ORIGINALS.npz'    # This is correct path for both subsequent=True AND augment=True
         else:
-            self.loc_originals_label_array = 'training_images/label_array_ORIGINALS.npz'
-        # self.loc_originals_label_array     = 'training_images/label_array_SUBSET.npz'
+            self.loc_originals_label_array = './training_images/label_array_ORIGINALS.npz'
+        # self.loc_originals_label_array     = './training_images/label_array_SUBSET.npz'
 
         # Location where final npz file will be saved (after filter application and multiplication are finished).
-        self.loc_final_save                = 'training_data_temp/sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
+        if augment:
+            self.loc_final_save                = './training_data_temp/aug_sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
+        else:
+            self.loc_final_save                = './training_data_temp/sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
 
         self.apply_filter()
         self.multiply()
@@ -84,7 +90,7 @@ class ImageFilterMultiplier(object):
         print '*** FILTER (at sigma={}) ***'.format(self.sigma)
         print 'Apply filter to original images: Initiated'
 
-        frame = 1
+        frame = 0
 
         # original images, read them in one-by-one
         originals = glob.glob(self.loc_originals_img)
@@ -108,6 +114,7 @@ class ImageFilterMultiplier(object):
 
         print 'Apply filter to original images: Completed'
         print ''
+
 
 
     def multiply(self):
@@ -156,7 +163,7 @@ class ImageFilterMultiplier(object):
 
             with np.load(single_npz) as data:
 
-                # LABELS
+                # ORIGINAL LABELS
                 labels = data.f.train_labels
                 original_labels_shape = labels.shape
                 print 'Original Labels dims: ', labels.shape
@@ -187,7 +194,7 @@ class ImageFilterMultiplier(object):
 
                 # Convert final to np.array
                 labels_doubled = np.array(final)
-                print 'Original + Flipped Labels dims: ', labels_doubled.shape
+                print 'Original Labels + Flipped Labels dims: ', labels_doubled.shape
 
                 # vstack 'labels_doubled' onto 'label_array', from below
                 label_array = np.vstack((label_array, labels_doubled))
@@ -197,7 +204,7 @@ class ImageFilterMultiplier(object):
         train = image_array[1:, :]
         train_labels = label_array[1:, :]
 
-        # save training data as a numpy file
+        # save training data as a numpy array zip file
         #''' What exactly does this look like? array of the data & label with 'train' and 'train_labels' as kw/arg? # np.savez(file, *args, **kwargs)'''
         np.savez(self.loc_final_save, train=train, train_labels=train_labels)
 
@@ -219,8 +226,9 @@ class ImageFilterMultiplier(object):
         print 'REMEMBER: Upload final training data npz files to Amazon S3.'
 
 
+
 if __name__ == '__main__':
 
-    ImageFilterMultiplier(sigma=0.33, subsequent=False)   # USE THIS WHEN COLLECTING NEW TRAINING DATA; this is the only sigma for whihch subsequent=False
+    # ImageFilterMultiplier(sigma=0.33, subsequent=False)   # USE THIS WHEN COLLECTING NEW TRAINING DATA; this is the only sigma for whihch subsequent=False
     # ImageFilterMultiplier(sigma=0.20, subsequent=True)
     # ImageFilterMultiplier(sigma=0.46, subsequent=True)
