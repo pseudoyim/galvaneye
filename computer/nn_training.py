@@ -32,10 +32,13 @@ y = label_array[1:, :]
 print 'Shape of feature array: ', X.shape
 print 'Shape of label array: ', y.shape
 
-# Normalize all columns in X. (Is this necessary in this context?)
-X_normalized = preprocessing.normalize(X, norm='l2')
+# # Normalize with l2
+# X = preprocessing.normalize(X, norm='l2')
+
+# Normalize from 0 to 1
 X = X / 255.
-# features = df.columns
+
+# train-test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20)
 model = Sequential()
 

@@ -40,9 +40,6 @@ class ImageAugmenter(object):
         # Location where final npz file will be saved (after filter application and multiplication are finished).
         # self.loc_final_save                = 'training_data_temp/aug_sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
 
-        if self.n == None:
-            print 'You want to augment, but you didn\'t give me an "n" parameter. Try again, fool.'
-            sys.exit()
         self.augment()
         ImageFilterMultiplier(sigma=0.33, subsequent=True, augment=True, n=self.n)
 
@@ -107,9 +104,9 @@ class ImageAugmenter(object):
         print 'SUMMARY:'
         print 'Number of original images:', len(originals)
         print 'Number of original images + augmented images:', num_new_images
+        print ''
 
 
 if __name__ == '__main__':
 
     ImageAugmenter(n=2)
-    ImageFilterMultiplier(sigma=0.33, subsequent=True, augment=True, n=)
