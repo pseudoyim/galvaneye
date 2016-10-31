@@ -4,7 +4,6 @@ import numpy as np
 import serial
 import socket
 import SocketServer
-import threading
 
 # KERAS stuff
 from keras.layers import Dense, Activation

@@ -4,19 +4,21 @@ This module does the following:
 '''
 import numpy as np
 # np.set_printoptions(threshold=np.nan)
+import csv
 import cv2
 import glob
-import sys
-import time
 import os, os.path
 import shutil
+import sys
+import time
+
 from img_filter_multiply import ImageFilterMultiplier
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 from tqdm import tqdm
 
 class ImageAugmenter(object):
 
-    def __init__(self, n=1):
+    def __init__(self, n=1, sigma=0.33, timestr=None):
 
         # DELETE the contents of 'training_images_filtered' and start anew. This is, after all, where the results of this module get dumped.
         shutil.rmtree('./augmented')
@@ -24,6 +26,16 @@ class ImageAugmenter(object):
 
         self.blurred = None
         self.n = n
+        self.sigma = sigma
+        self.timestr = timestr
+        self.npzfilename = 'aug_sigma{}_{}.npz'.format(str(self.sigma)[-2:], self.timestr)
+
+        self.rotation_range = 1
+        self.width_shift_range = 0.02
+        self.height_shift_range = 0.02
+        self.shear_range = 0
+        self.zoom_range = 0.1
+        self.fill_mode = 'nearest'
 
         # Location of original images (or image folders) collected.
         self.loc_originals_img             = './images/imgs_2016*/*.jpg'
@@ -40,8 +52,7 @@ class ImageAugmenter(object):
         # Location where final npz file will be saved (after filter application and multiplication are finished).
         # self.loc_final_save                = 'training_data_temp/aug_sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
 
-        self.augment()
-        ImageFilterMultiplier(sigma=0.33, subsequent=True, augment=True, n=self.n)
+        # self.augment()
 
 
     def augment(self):
@@ -54,13 +65,12 @@ class ImageAugmenter(object):
 
         print 'Generating {} augmentations for each of {} original images...'.format(self.n, len(originals))
 
-        datagen = ImageDataGenerator(rotation_range=1,
-                                     width_shift_range=0.02,
-                                     height_shift_range=0.02,
-                                     shear_range=0,
-                                     zoom_range=0.1,
-                                     horizontal_flip=False,
-                                     fill_mode='nearest')
+        datagen = ImageDataGenerator(rotation_range     = self.rotation_range,
+                                     width_shift_range  = self.width_shift_range,
+                                     height_shift_range = self. height_shift_range,
+                                     shear_range        = self.shear_range,
+                                     zoom_range         = self.zoom_range,
+                                     fill_mode          = self.fill_mode)
 
         successes = 0
         for orig in tqdm(originals):
@@ -107,6 +117,32 @@ class ImageAugmenter(object):
         print ''
 
 
+    def log_update(self):
+        row_params = [self.npzfilename, \
+                      self.rotation_range, \
+                      self.width_shift_range, \
+                      self.height_shift_range, \
+                      self.shear_range, \
+                      self.zoom_range, \
+                      self.fill_mode, \
+                      self.sigma]
+
+        with open('./log_img_parameters.csv','a') as log:
+            log_writer = csv.writer(log)
+            log_writer.writerow(row_params)
+
+
 if __name__ == '__main__':
 
-    ImageAugmenter(n=2)
+    # Global variables
+    sigma = 0.33
+    timestr = time.strftime('%Y%m%d_%H%M%S')
+
+    # Variables specific to ImageAugmenter
+    # 'n' is the number of copies to make of each original image. Keep in mind this will be doubled when flipped. FINAL COUNT == (n+1) * 2
+    n = 2
+
+    # ImageAugmenter(n=n, sigma=sigma, timestr=timestr)
+    ImageAugmenter(n=n, sigma=sigma, timestr=timestr).augment()
+    ImageFilterMultiplier(sigma=sigma, subsequent=True, augment=True, n=n, timestr=timestr)
+    ImageAugmenter(n=n, sigma=sigma, timestr=timestr).log_update()

@@ -27,9 +27,7 @@ class CollectTrainingData(object):
         # accept a single connection
         self.connection = self.server_socket.accept()[0].makefile('rb')
 
-        # # connect to a serial port
-        # (Hamuchiwa's old code) self.ser = serial.Serial('/dev/tty.usbmodem1421', 115200, timeout=1)
-        # self.ser = serial.Serial('/dev/cu.usbmodem1411', 115200, timeout=1)     # ? How exactly did this port get created?  Obtained port path from: python -m serial.tools.list_ports
+        # Establish condition that RaspPi should be sending images.
         self.send_inst = True
 
         # create labels (aka the Y values; these will be the directional output to the arduino remote control)
@@ -48,7 +46,7 @@ class CollectTrainingData(object):
         self.auto_canny()
 
 
-    def auto_canny(self,img):
+    def auto_canny(self):
     	# compute the median of the single channel pixel intensities
         sigma=0.33
         v = np.median(img)
@@ -94,7 +92,7 @@ class CollectTrainingData(object):
 
                     # image is a np matrix.
                     image = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
-                    
+
                     # overlay = image.copy()  IF putText works below, then delete this line. Otherwise you'll need to add a transparent overlay (cv2.addWeighted(overlay...)
                     blurred = cv2.GaussianBlur(image, (3, 3), 0)
 
@@ -192,6 +190,11 @@ class CollectTrainingData(object):
 
             print(train.shape)
             print(train_labels.shape)
+
+            print 'Forward clicks: ', clicks_forward
+            print 'Forward-left clicks: ', clicks_forward_left
+            print 'Forward-right clicks: ', clicks_forward_right
+
             print 'Total frame:', total_frame
             print 'Saved frame:', saved_frame
             print 'Dropped frame', total_frame - saved_frame
@@ -201,6 +204,9 @@ class CollectTrainingData(object):
             self.server_socket.close
             print 'Connection closed'
             print 'Socket closed'
+            print ''
+            print 'REMEMBER TO CHANGE THE SAVED npz FILENAME!'
+            print ''
 
 if __name__ == '__main__':
     CollectTrainingData()

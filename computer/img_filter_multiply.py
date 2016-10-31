@@ -2,21 +2,21 @@
 This module does the following:
 
 '''
-import numpy as np
-# np.set_printoptions(threshold=np.nan)
 import cv2
 import glob
-import sys
-import time
+import numpy as np
+# np.set_printoptions(threshold=np.nan)
 import os
 import shutil
-from collections import deque
+import sys
+import time
+# from img_augment import ImageAugmenter
 from tqdm import tqdm
 
 class ImageFilterMultiplier(object):
 
     # 'subsequent' refers to whether this run is being performed (subsequently) on previously saved original images, but at a different sigma value.
-    def __init__(self, sigma=0.33, subsequent=False, augment=False, n=None):
+    def __init__(self, sigma=0.33, subsequent=False, augment=False, n=None, timestr=None):
 
         if not subsequent:
             confirmation1 = raw_input('Confirmed the directory \'training_images\' contains the ORIGINAL images you want to filter & multiply? [y/n] ')
@@ -31,6 +31,11 @@ class ImageFilterMultiplier(object):
         self.blurred = None
         self.n = n
         self.sigma = sigma
+        self.subsequent = False
+        self.timestr = timestr
+
+        if subsequent:
+            self.subsequent = True
 
         # Location of images to filter and multiply (after making a copy and flipping it L to R).
         if subsequent and not augment:
@@ -55,9 +60,13 @@ class ImageFilterMultiplier(object):
 
         # Location where final npz file will be saved (after filter application and multiplication are finished).
         if augment:
-            self.loc_final_save                = './training_data_temp/aug_sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
+            # self.loc_final_save            = './training_data_temp/aug_sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
+            self.loc_final_save            = './training_data_temp/aug_sigma{}_{}.npz'.format(str(self.sigma)[-2:], self.timestr)
+
         else:
-            self.loc_final_save                = './training_data_temp/sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
+            # self.loc_final_save            = './training_data_temp/sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
+            self.loc_final_save            = './training_data_temp/sigma{}_{}.npz'.format(str(self.sigma)[-2:], self.timestr)
+
 
         self.apply_filter()
         self.multiply()
@@ -175,9 +184,6 @@ class ImageFilterMultiplier(object):
 
                 array_list = labels.tolist()
 
-                # # This 'final' empty list will eventually be turned into a nparray
-                # final = []
-
                 # For each original label...
                 for row in array_list:
 
@@ -199,38 +205,6 @@ class ImageFilterMultiplier(object):
                                 final.append([0.0, 0.0, 1.0])
                                 continue
 
-
-
-                        # # for self.n times, add ORIGINAL LABEL to deque
-                        # for i in xrange(self.n):
-                        #     temp_list.append(row)
-                        #
-                        # # for self.n times, add FLIPPED LABEL to deque
-                        # for i in xrange(self.n):
-                        #
-                        #     # Forward-Left becomes Forward-Right, append
-                        #     if row[0] == 1:
-                        #         temp_list.append([0.0, 1.0, 0.0])
-                        #
-                        #     # Forward-Right becomes Forward-Left, append
-                        #     elif row[1] == 1:
-                        #         temp_list.append([1.0, 0.0, 0.0])
-                        #
-                        #     # Forward remains as Forward, append
-                        #     elif row[2] == 1:
-                        #         temp_list.append([0.0, 0.0, 1.0])
-                        #         continue
-                        #
-                        # temp_deque = deque(temp_list)
-
-                        # # vstack to label_array, popping left and right, n times plus 1 (for the original pair)
-                        # for i in xrange(self.n + 1):
-                        #     left  = temp_deque.popleft()
-                        #     right = temp_deque.pop()
-                        #     label_array.append(left)
-                        #     label_array.append(right)
-
-
                     else:
                         # First append original row to final, then...
                         final.append(row)
@@ -250,10 +224,6 @@ class ImageFilterMultiplier(object):
                             final.append(row)
                             continue
 
-                # # Convert 'final' to array, then vstack 'labels_doubled' onto 'label_array', from below
-                # labels_doubled = np.array(final)
-                # label_array.append(labels_doubled)
-
         label_array = np.array(final)
 
         print '...complete!'
@@ -268,9 +238,11 @@ class ImageFilterMultiplier(object):
         print 'Saving final .npz file...'
         np.savez(self.loc_final_save, train=train, train_labels=train_labels)
 
-        timestr = time.strftime('%Y%m%d_%H%M%S')
-        os.rename(  './training_images', './imgs_{}'.format(timestr))
-        os.makedirs('./training_images')
+        # Save new images in folder
+        # if not subsequent (i.e. if this is a brand new set of training images), then save to its own new folder.
+        if not self.subsequent:
+            os.rename(  './training_images', './imgs_{}'.format(self.timestr))
+            os.makedirs('./training_images')
 
         print 'Multiply (double) filtered images and labels: Completed'
         print ''

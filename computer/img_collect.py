@@ -4,14 +4,14 @@ This module does the following:
   2. Collects direction inputs as an array, each new one being vstacked below the previous. Compiles to npz file at the end.
 '''
 
-import numpy as np
+import car
 import cv2
+import glob
+import numpy as np
 import serial
 import pygame
 from pygame.locals import *
 import socket
-import car
-import glob
 import time
 
 
@@ -136,7 +136,7 @@ class ImageCollect(object):
             train_labels = label_array[1:, :]
             np.savez('training_images/label_array_ORIGINALS.npz', train_labels=train_labels)
 
-            with open('img_collect_log.txt', 'a') as f:
+            with open('log_img_collect.txt', 'a') as f:
                 f.write('Date: ' + time.strftime('%x') + '\n')
                 f.write('Time: ' + time.strftime('%X') + '\n')
                 f.write('Total frames: ' + str(total_frame) + '\n')

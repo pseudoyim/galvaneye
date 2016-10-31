@@ -94,6 +94,7 @@ class CollectTrainingData(object):
 
                     # image is a np matrix.
                     image = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+                    
                     # overlay = image.copy()  IF putText works below, then delete this line. Otherwise you'll need to add a transparent overlay (cv2.addWeighted(overlay...)
                     blurred = cv2.GaussianBlur(image, (3, 3), 0)
 
