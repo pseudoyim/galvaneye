@@ -127,7 +127,7 @@ class ImageAugmenter(object):
                       self.fill_mode, \
                       self.sigma]
 
-        with open('./log_img_parameters.csv','a') as log:
+        with open('./logs/log_img_parameters.csv','a') as log:
             log_writer = csv.writer(log)
             log_writer.writerow(row_params)
 
@@ -135,8 +135,12 @@ class ImageAugmenter(object):
 if __name__ == '__main__':
 
     # Global variables
-    sigma = 0.33
+    # sigma: pertains to median threshold for canny filter
+    # timestr: self-explanatory
+    # cnn: whether to save images for CNN training
+    sigma = 0.41
     timestr = time.strftime('%Y%m%d_%H%M%S')
+    cnn = True
 
     # Variables specific to ImageAugmenter
     # 'n' is the number of copies to make of each original image. Keep in mind this will be doubled when flipped. FINAL COUNT == (n+1) * 2
@@ -144,5 +148,5 @@ if __name__ == '__main__':
 
     # ImageAugmenter(n=n, sigma=sigma, timestr=timestr)
     ImageAugmenter(n=n, sigma=sigma, timestr=timestr).augment()
-    ImageFilterMultiplier(sigma=sigma, subsequent=True, augment=True, n=n, timestr=timestr)
+    ImageFilterMultiplier(sigma=sigma, subsequent=True, augment=True, n=n, timestr=timestr, cnn=True)
     ImageAugmenter(n=n, sigma=sigma, timestr=timestr).log_update()

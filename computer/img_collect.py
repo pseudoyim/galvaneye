@@ -136,7 +136,7 @@ class ImageCollect(object):
             train_labels = label_array[1:, :]
             np.savez('training_images/label_array_ORIGINALS.npz', train_labels=train_labels)
 
-            with open('log_img_collect.txt', 'a') as f:
+            with open('./logs/log_img_collect.txt', 'a') as f:
                 f.write('Date: ' + time.strftime('%x') + '\n')
                 f.write('Time: ' + time.strftime('%X') + '\n')
                 f.write('Total frames: ' + str(total_frame) + '\n')

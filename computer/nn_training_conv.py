@@ -1,4 +1,5 @@
 import csv
+import cv2
 import glob
 import json
 import numpy as np
@@ -11,27 +12,35 @@ from keras.models import Sequential
 from keras.optimizers import SGD
 from sklearn.cross_validation import train_test_split
 from sklearn import preprocessing
-
+from tqdm import tqdm
 
 print 'Loading training data...'
 time_load_start = time.time()         # Returns the number of ticks after a certain event.
 
-# Load training data, unpacking what's in the saved .npz files.
-image_array = np.zeros((1, 38400))
+# Load jpg images for training.
+training_images = glob.glob('./training_data/*_cnn/*.jpg')
+# image_array = np.zeros((1, 120, 320), 'float')
+#
+# for img in training_images:
+#     image_array = np.concatenate((image_array, img), axis=0)
+
+
+image_array = np.array([cv2.imread(name, cv2.IMREAD_GRAYSCALE) for name in tqdm(training_images)], dtype=np.float64)
+
+
+# Load training data .npz to get label_array, unpacking what's in the saved .npz files.
 label_array = np.zeros((1, 3), 'float')
 training_data = glob.glob('training_data/*.npz')        # Finds filename matching specified path or pattern.
 
 for single_npz in training_data:                        # single_npz == one array representing one array of saved image data and user input label for that image.
     with np.load(single_npz) as data:
-        print data.files
-        train_temp = data['train']                      # returns the training data image array assigned to 'train' argument created during np.savez step in 'collect_training_data.py'
         train_labels_temp = data['train_labels']        # returns the training user input data array assigned to 'train_labels' argument created during np.savez step in 'collect_training_data.py'
-        print train_temp.shape
         print train_labels_temp.shape
-    image_array = np.vstack((image_array, train_temp))
     label_array = np.vstack((label_array, train_labels_temp))
 
-X = image_array[1:, :]
+
+# X = image_array[1:, :]
+X = image_array
 y = label_array[1:, :]
 print 'Shape of feature array: ', X.shape
 print 'Shape of label array: ', y.shape
@@ -56,14 +65,26 @@ time_training_start = time.time()
 
 print 'Training...'
 
-# Dense(n) is a fully-connected layer with n hidden units in the first layer.
-# You must specify the expected input data shape (e.g. input_dim=20 for 20-dimensional input vector).
-model.add(Dense(30, input_dim=38400, init='uniform'))
+# CONVOLUTION
+
+model.add(Convolution2D(32, 3, 3, input_shape=(1, 120, 320)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Convolution2D(32, 3, 3))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Convolution2D(64, 3, 3))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Flatten())
+
+model.add(Dense(30, init='uniform'))
 model.add(Dropout(0.2))
 model.add(Activation('relu'))
-# model.add(Dense(10, init='uniform' ))
-# model.add(Dropout(0.2))
-# model.add(Activation('softmax'))
+
 model.add(Dense(3, init='uniform'))
 model.add(Activation('softmax'))
 

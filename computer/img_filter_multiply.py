@@ -16,19 +16,20 @@ from tqdm import tqdm
 class ImageFilterMultiplier(object):
 
     # 'subsequent' refers to whether this run is being performed (subsequently) on previously saved original images, but at a different sigma value.
-    def __init__(self, sigma=0.33, subsequent=False, augment=False, n=None, timestr=None):
+    def __init__(self, sigma=0.33, subsequent=False, augment=False, n=None, timestr=None, cnn=False):
 
         if not subsequent:
             confirmation1 = raw_input('Confirmed the directory \'training_images\' contains the ORIGINAL images you want to filter & multiply? [y/n] ')
             if confirmation1 != 'y':
                 sys.exit()
 
-        # DELETE the contents of 'training_images_filtered'
+        # DELETE the contents of 'training_images_filtered' (to start anew)
         shutil.rmtree('./training_images_filtered')
         os.makedirs(  './training_images_filtered')
 
         self.augment = augment
         self.blurred = None
+        self.cnn = cnn
         self.n = n
         self.sigma = sigma
         self.subsequent = False
@@ -57,6 +58,9 @@ class ImageFilterMultiplier(object):
         else:
             self.loc_originals_label_array = './training_images/label_array_ORIGINALS.npz'
         # self.loc_originals_label_array     = './training_images/label_array_SUBSET.npz'
+
+        # Location where final augmented, filtered, multiplied and flipped images will be saved for convolutional neural network training.
+        self.loc_cnn_images                = './training_data_temp/cnn_images_temp'
 
         # Location where final npz file will be saved (after filter application and multiplication are finished).
         if augment:
@@ -123,6 +127,8 @@ class ImageFilterMultiplier(object):
 
     def multiply(self):
 
+        frame = 0
+
         print '*** MULTIPLY ***'
         print 'Multiply (double) filtered images and labels: Initiated'
 
@@ -139,6 +145,11 @@ class ImageFilterMultiplier(object):
 
             image = cv2.imread(each, cv2.IMREAD_GRAYSCALE)
 
+            # Save image for CNN training
+            if self.cnn:
+                cv2.imwrite(self.loc_cnn_images + '/frame{:>05}.jpg'.format(frame), image)
+                frame += 1
+
             # Decode/reshape ORIGINAL image into np.array
             temp_array = image.reshape(1, 38400).astype(np.float32)
             image_array.append(temp_array)
@@ -146,6 +157,12 @@ class ImageFilterMultiplier(object):
             # Flip temp_array (i.e. left will be right, right will be left, forward will be forward)
             # Decode/reshape FLIPPED image into np.array
             image_flipped = np.fliplr(image)
+
+            # Save image for CNN training
+            if self.cnn:
+                cv2.imwrite(self.loc_cnn_images + '/frame{:>05}.jpg'.format(frame), image_flipped)
+                frame += 1
+
             temp_array_flipped = image_flipped.reshape(1, 38400).astype(np.float32)
             image_array.append(temp_array_flipped)
 
@@ -241,8 +258,13 @@ class ImageFilterMultiplier(object):
         # Save new images in folder
         # if not subsequent (i.e. if this is a brand new set of training images), then save to its own new folder.
         if not self.subsequent:
-            os.rename(  './training_images', './imgs_{}'.format(self.timestr))
+            os.rename(  './training_images', './images/imgs_{}'.format(self.timestr))
             os.makedirs('./training_images')
+
+        # Save CNN training images to its own folder and create new temp folder for next round.
+        if self.cnn:
+            os.rename(  './training_data_temp/cnn_images_temp', './training_data_temp/aug_sigma{}_{}_cnn'.format(str(self.sigma)[-2:], self.timestr))
+            os.makedirs('./training_data_temp/cnn_images_temp')
 
         print 'Multiply (double) filtered images and labels: Completed'
         print ''
