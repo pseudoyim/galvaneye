@@ -7,7 +7,8 @@ import pandas as pd
 import time
 
 from keras.layers import Activation, Dense, Dropout, Flatten
-from keras.layers import Convolution1D, MaxPooling1D
+from keras.layers import Convolution2D, MaxPooling2D
+from keras.layers.core import Reshape
 from keras.models import Sequential
 from keras.optimizers import SGD
 from sklearn.cross_validation import train_test_split
@@ -17,42 +18,44 @@ from tqdm import tqdm
 print 'Loading training data...'
 time_load_start = time.time()         # Returns the number of ticks after a certain event.
 
-# Load jpg images for training.
+# Load jpg images to get image_array.
 training_images = glob.glob('./training_data/*_cnn/*.jpg')
-# image_array = np.zeros((1, 120, 320), 'float')
-#
-# for img in training_images:
-#     image_array = np.concatenate((image_array, img), axis=0)
-
-
 image_array = np.array([cv2.imread(name, cv2.IMREAD_GRAYSCALE) for name in tqdm(training_images)], dtype=np.float64)
 
-
 # Load training data .npz to get label_array, unpacking what's in the saved .npz files.
-label_array = np.zeros((1, 3), 'float')
+# label_array = np.zeros((1, 3), 'float')
 training_data = glob.glob('training_data/*.npz')        # Finds filename matching specified path or pattern.
 
+label_array = None
 for single_npz in training_data:                        # single_npz == one array representing one array of saved image data and user input label for that image.
     with np.load(single_npz) as data:
         train_labels_temp = data['train_labels']        # returns the training user input data array assigned to 'train_labels' argument created during np.savez step in 'collect_training_data.py'
-        print train_labels_temp.shape
-    label_array = np.vstack((label_array, train_labels_temp))
+        print 'Original labels shape:', train_labels_temp.shape
+    label_array = np.array([label for label in tqdm(train_labels_temp)], dtype=np.float64)
 
-
-# X = image_array[1:, :]
 X = image_array
-y = label_array[1:, :]
+y = label_array
 print 'Shape of feature array: ', X.shape
+print type(X)
 print 'Shape of label array: ', y.shape
+print type(y)
 
 # # Normalize with l2 (not gonna use this...)
 # X = preprocessing.normalize(X, norm='l2')
 
 # Normalize from 0 to 1
 X = X / 255.
+# for each in tqdm(X):
+#     each/255.
 
 # train-test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20)
+print X_train.shape
+print X_test.shape
+print y_train.shape
+print y_test.shape
+
+
 model = Sequential()
 
 time_load_end = time.time()
@@ -65,9 +68,12 @@ time_training_start = time.time()
 
 print 'Training...'
 
+
 # CONVOLUTION
 
-model.add(Convolution2D(32, 3, 3, input_shape=(1, 120, 320)))
+model.add(Reshape((1, 120, 320), input_shape=(120, 320)))   # for THEANO
+# model.add(Reshape((120, 320, 1), input_shape=(120, 320)))   # for TENSORFLOW
+model.add(Convolution2D(32, 3, 3, border_mode='same'))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -93,11 +99,15 @@ model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
               metrics=['accuracy'])
 
+
 # Fit the model
 model.fit(X_train, y_train,
           nb_epoch=20,
           batch_size=1000,
           validation_data=(X_test, y_test))
+
+print 'outputshape:', model.outputshape
+
 
 # Get end time of Training
 time_training_end = time.time()

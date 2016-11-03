@@ -55,6 +55,8 @@ class ImageFilterMultiplier(object):
         # Location of original label_array (to be multiplied).
         if subsequent:
             self.loc_originals_label_array = './images/imgs_2016*/label_array_ORIGINALS.npz'    # This is correct path for both subsequent=True AND augment=True
+            # self.loc_originals_label_array = './images/imgs_20161024_201843/label_array_ORIGINALS.npz'    # SUBSET: This is correct path for both subsequent=True AND augment=True
+
         else:
             self.loc_originals_label_array = './training_images/label_array_ORIGINALS.npz'
         # self.loc_originals_label_array     = './training_images/label_array_SUBSET.npz'

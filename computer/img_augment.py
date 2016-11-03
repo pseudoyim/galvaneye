@@ -39,6 +39,7 @@ class ImageAugmenter(object):
 
         # Location of original images (or image folders) collected.
         self.loc_originals_img             = './images/imgs_2016*/*.jpg'
+        # self.loc_originals_img             = './images/imgs_20161024_201843/*.jpg'    #SUBSET
 
         # Location of filtered images after filter is applied to each original image.
         self.loc_filtered_img_storage_each = 'training_images_filtered/frame{:>05}.jpg'
@@ -48,6 +49,7 @@ class ImageAugmenter(object):
 
         # Location of original label_array (to be multiplied).
         self.loc_originals_label_array     = './images/imgs_2016*/label_array_ORIGINALS.npz'
+        # self.loc_originals_label_array     = './images/imgs_20161024_201843/label_array_ORIGINALS.npz'    #SUBSET
 
         # Location where final npz file will be saved (after filter application and multiplication are finished).
         # self.loc_final_save                = 'training_data_temp/aug_sigma{}_{}.npz'.format(str(self.sigma)[-2:], time.strftime("%Y%m%d_%H%M%S"))
@@ -138,7 +140,7 @@ if __name__ == '__main__':
     # sigma: pertains to median threshold for canny filter
     # timestr: self-explanatory
     # cnn: whether to save images for CNN training
-    sigma = 0.41
+    sigma = 0.33
     timestr = time.strftime('%Y%m%d_%H%M%S')
     cnn = True
 

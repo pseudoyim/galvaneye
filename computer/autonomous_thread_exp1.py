@@ -4,7 +4,6 @@ import numpy as np
 import os
 import serial
 import socket
-import SocketServer
 import threading
 import time
 
@@ -50,6 +49,8 @@ class RCDriver(object):
         car.forward(100)
 
 
+rcdriver = RCDriver()
+
 
 class ObjectDetection(object):
 
@@ -57,7 +58,6 @@ class ObjectDetection(object):
     global stop_classifier
 
     def detect(self, cascade_classifier, gray_image, image):
-
 
         stop_sign_detected = cascade_classifier.detectMultiScale(
             gray_image,
@@ -79,19 +79,22 @@ class ObjectDetection(object):
         if np.any(stop_sign_detected):
             rcdriver.stop()
 
+obj_detection = ObjectDetection()
+
 
 
 class NeuralNetwork(object):
 
     global stop_classifier
     global timestr
-    obj_detection = ObjectDetection()
-    rcdriver = RCDriver()
 
-
-    def __init__(self, receiving=False):
+    def __init__(self, receiving=False, piVideoObject=None):
         self.receiving = receiving
         self.model = keras.models.load_model('nn_h5/nn.h5')
+
+        # PiVideoStream class object is now here.
+        self.piVideoObject = piVideoObject
+        self.rcdriver = RCDriver()
 
         self.fetch()
 
@@ -129,7 +132,11 @@ class NeuralNetwork(object):
 
             frame = 0
 
-            jpg = video_stream.frame
+            # There's a chance that the Main thread can get to this point before the New thread begins streaming images.
+            # To account for this, we create the jpg variable but set to None, and keep checking until it actually has something.
+            jpg = None
+            while jpg is None:
+                jpg = self.piVideoObject.frame
 
             gray  = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
             image = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
@@ -150,8 +157,10 @@ class NeuralNetwork(object):
             cv2.imshow('Original', image)
             cv2.imshow('What the model sees', auto)
 
+            print 'shape of auto:',auto.shape
             # Neural network model makes prediciton
-            prediction = self.model.predict(auto)
+            # prediction = self.model.predict(auto)
+            prediction = self.predict(auto)
 
             # Save frame and prediction record for debugging research
             prediction_english = None
@@ -167,7 +176,7 @@ class NeuralNetwork(object):
             frame += 1
 
             # Send prediction to driver to tell it how to steer
-            rcdriver.steer(prediction)
+            self.rcdriver.steer(prediction)
 
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -180,15 +189,12 @@ class NeuralNetwork(object):
 
 
 
-
 class PiVideoStream(object):
-
-
-    neural_network = NeuralNetwork()
 
     def __init__(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(('192.168.1.66', 8000)) # The IP address of your computer (Paul's MacBook Air). This script should run before the one on the Pi.
+
         print 'Listening...'
         self.server_socket.listen(0)
 
@@ -208,12 +214,19 @@ class PiVideoStream(object):
     def start(self):
     	# start the thread to read frames from the video stream
         print 'Starting PiVideoStream thread...'
-        threading.Thread(target=self.update, args=()).start()
+        print ' \"Hold on to your butts!\" '
 
+        # Start a new thread
+        t = threading.Thread(target=self.update, args=())
+        t.daemon=True
+        t.start()
         print '...thread running'
-        # neural_network
 
-        return self
+        # Main thread diverges from the new thread and activates the neural_network
+        # The piVideoObject argument ('self') passes the PiVideoStream class object to NeuralNetwork.
+        NeuralNetwork(receiving=True, piVideoObject=self)
+        print 'NN should be activated...'
+
 
 
     def update(self):
@@ -244,6 +257,11 @@ class PiVideoStream(object):
 
 
 if __name__ == '__main__':
-    PiVideoStream()
-    print ' \"Hold on to your butts!\" '
-    # NeuralNetwork(receiving=True)
+    try:
+        # Create an instance of PiVideoStream class
+        video_stream = PiVideoStream()
+    except (KeyboardInterrupt, SystemExit):
+        print 'Car go night night.'
+        car.pause(10000)
+        video_stream.connection.close()
+        print '\n! Received keyboard interrupt, quitting threads.\n'
