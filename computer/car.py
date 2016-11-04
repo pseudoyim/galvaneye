@@ -15,49 +15,49 @@ print ser.readline()
 
 def forward(ms):
     ser.write('1000\n')
-    print 'forward'
+    # print 'forward'
     time.sleep(ms / 1000.)
     ser.write('0000\n')
 
 def reverse(ms):
     ser.write('0100\n')
-    print 'reverse'
+    # print 'reverse'
     time.sleep(ms / 1000.)
     ser.write('0000\n')
 
 def left(ms):
     ser.write('0010\n')
-    print 'left'
+    # print 'left'
     time.sleep(ms / 1000.)
     ser.write('0000\n')
 
 def right(ms):
     ser.write('0001\n')
-    print 'right'
+    # print 'right'
     time.sleep(ms / 1000.)
     ser.write('0000\n')
 
 def forward_left(ms):
     ser.write('1010\n')
-    print 'forward_left'
+    # print 'forward_left'
     time.sleep(ms / 1000.)
     ser.write('0000\n')
 
 def forward_right(ms):
     ser.write('1001\n')
-    print 'forward_right'
+    # print 'forward_right'
     time.sleep(ms / 1000.)
     ser.write('0000\n')
 
 def reverse_left(ms):
     ser.write('0110\n')
-    print 'reverse_left'
+    # print 'reverse_left'
     time.sleep(ms / 1000.)
     ser.write('0000\n')
 
 def reverse_right(ms):
     ser.write('0101\n')
-    print 'reverse_right'
+    # print 'reverse_right'
     time.sleep(ms / 1000.)
     ser.write('0000\n')
 
@@ -69,5 +69,5 @@ def set(forward, reverse, left, right):
     ser.write("{}{}{}{}\n".format(forward, reverse, left, right))
 
 def pause(ms):
-    print 'pausing...'
+    # print 'pausing...'
     time.sleep(ms / 1000.)

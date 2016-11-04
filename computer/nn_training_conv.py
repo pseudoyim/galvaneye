@@ -71,8 +71,12 @@ print 'Training...'
 
 # CONVOLUTION
 
-model.add(Reshape((1, 120, 320), input_shape=(120, 320)))   # for THEANO
-# model.add(Reshape((120, 320, 1), input_shape=(120, 320)))   # for TENSORFLOW
+# When using THEANO backend
+model.add(Reshape((1, 120, 320), input_shape=(120, 320)))
+
+# # When using TENSORFLOW backend
+# model.add(Reshape((120, 320, 1), input_shape=(120, 320)))
+
 model.add(Convolution2D(32, 3, 3, border_mode='same'))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
