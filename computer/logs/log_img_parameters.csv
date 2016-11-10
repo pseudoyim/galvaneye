@@ -1,0 +1,10 @@
+"npz_filename","aug_rotation_range","aug_width_shift_range","aug_height_shift_range","aug_shear_range","aug_zoom_range","aug_fill_mode","fm_sigma"
+aug_sigma37_20161028_172124.npz,1,0.02,0.02,0,0.1,nearest,0.37
+aug_sigma31_20161031_113851.npz,1,0.02,0.02,0,0.1,nearest,0.31
+aug_sigma33_20161027_172635.npz,1,0.02,0.02,0,0.1,nearest,0.33
+aug_sigma25_20161101_112314.npz,1,0.02,0.02,0,0.1,nearest,0.25
+aug_sigma41_20161101_133448.npz,1,0.02,0.02,0,0.1,nearest,0.41
+aug_sigma41_20161101_172820.npz,1,0.02,0.02,0,0.1,nearest,0.41
+aug_sigma33_20161102_132620.npz,1,0.02,0.02,0,0.1,nearest,0.33
+aug_sigma33_20161102_132824.npz,1,0.02,0.02,0,0.1,nearest,0.33
+aug_sigma33_20161104_162959.npz,1,0.02,0.02,0,0.1,nearest,0.33
