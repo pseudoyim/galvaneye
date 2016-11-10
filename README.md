@@ -3,6 +3,12 @@
 
 ## Motivation
   I've been following developments in the field of autonomous vehicles for several years now, and I'm very interested in the impacts these developments will have on public policy and in our daily lives. I wanted to learn more about the underlying machine learning techniques that make autonomous driving possible. Lacking access and resources to work with actual self-driving cars, I was happy to find that it was possible to work with an RC model, and I'm very grateful to Hamuchiwa for having demonstrated these possibilities through his own self-driving RC car project.
+  
+  ![alt tag](https://cloud.githubusercontent.com/assets/9688260/20187772/41067a5a-a73b-11e6-95be-035bb971835f.jpg)
+
+<p align="center">
+  <img src="https://cloud.githubusercontent.com/assets/9688260/20187772/41067a5a-a73b-11e6-95be-035bb971835f.jpg" width="350"/>
+</p>
 
 ## Primary Python packages used
   - OpenCV v3.1.0
