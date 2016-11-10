@@ -110,8 +110,6 @@ model.fit(X_train, y_train,
           batch_size=1000,
           validation_data=(X_test, y_test))
 
-print 'outputshape:', model.outputshape
-
 
 # Get end time of Training
 time_training_end = time.time()

@@ -14,7 +14,7 @@ import keras.models
 
 
 SIGMA = 0.33
-stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign.xml')
+stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign_pjy.xml')
 timestr = time.strftime('%Y%m%d_%H%M%S')
 
 
@@ -63,9 +63,9 @@ class ObjectDetection(object):
         stop_sign_detected = cascade_classifier.detectMultiScale(
             gray_image,
             scaleFactor=1.1,
-            minNeighbors=5,
-            minSize=(25, 25),
-            maxSize=(45,455))
+            minNeighbors=10,
+            minSize=(35, 35),
+            maxSize=(45, 45))
 
         # Draw a rectangle around stop sign
         for (x_pos, y_pos, width, height) in stop_sign_detected:
@@ -97,8 +97,14 @@ class ObjectDetection(object):
 
     	# Draw the FINAL bounding boxes
     	for (xA, yA, xB, yB) in pick:
-    		cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
+            cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
             cv2.putText(image, 'PEDESTRIAN', (xA, yA-10), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 2)
+
+
+
+        # AM I STUCK
+        
+
 
 obj_detection = ObjectDetection()
 
@@ -209,11 +215,9 @@ class NeuralNetwork(object):
             # Send prediction to driver to tell it how to steer
             self.rcdriver.steer(prediction)
 
-
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.stop()
                 cv2.destroyAllWindows()
-
 
 
 
@@ -221,7 +225,9 @@ class PiVideoStream(object):
 
     def __init__(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind(('192.168.1.66', 8000)) # The IP address of your computer (Paul's MacBook Air). This script should run before the one on the Pi.
+        # self.server_socket.bind(('192.168.1.66', 8000)) # The IP address of your computer (Paul's MacBook Air). This script should run before the one on the Pi.
+        self.server_socket.bind(('10.10.10.1', 8000)) # The IP address of your computer (Paul's MacBook Air). This script should run before the one on the Pi.
+
 
         print 'Listening...'
         self.server_socket.listen(0)
@@ -298,6 +304,5 @@ if __name__ == '__main__':
         print '\n! Received keyboard interrupt, quitting threads.\n'
 
     finally:
-
         video_stream.connection.close()
         print '...done.\n'

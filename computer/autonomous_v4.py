@@ -13,7 +13,7 @@ from keras.models import Sequential
 import keras.models
 
 SIGMA = 0.33
-stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign.xml')
+stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign_pjy.xml')
 timestr = time.strftime('%Y%m%d_%H%M%S')
 
 
@@ -61,9 +61,9 @@ class ObjectDetection(object):
         stop_sign_detected = cascade_classifier.detectMultiScale(
             gray_image,
             scaleFactor=1.1,
-            minNeighbors=5,
+            minNeighbors=10,
             minSize=(25, 25),
-            maxSize=(55, 55)
+            maxSize=(45, 45)
         )
 
         rect_width = None
