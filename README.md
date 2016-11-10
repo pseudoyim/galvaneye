@@ -67,7 +67,7 @@
 
 ## Tying it all together
   After training my model, I began to feed it images on my laptop to see what kind of predictions it made. It was very exciting to see it spit out accurate directions given various pictures of the track (e.g., given a picture of a straight segment of track, the model predicted "Forward").
-  The moment of truth came when I implemented the code for the trained model into the script that drove the car. A couple seconds after hitting enter, I heard the car begin to move by itself. At the moment, I felt like:
+  The moment of truth came when I implemented the code for the trained model into the script that drove the car. A couple seconds after hitting "enter", I heard the car begin to move by itself. At that moment, I felt like:
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/9688260/20187773/4232f516-a73b-11e6-8782-067438af4388.jpg" width="500"/>
