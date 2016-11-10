@@ -1,13 +1,12 @@
 # galvanEye
-  Building on the original work of Hamuchiwa (https://github.com/hamuchiwa/AutoRCCar), I incorporated image preprocessing in OpenCV and used Keras (TensorFlow backend) to train a neural network that could drive a remote control (RC) car and detect common environmental variables using computer vision. This project fulfilled the capstone requirement for my graduation from the Data Science Immersive program at Galvanize in Austin, Texas (August-November 2016). For a high-level overview of this project, please see this slide deck:.
+  Building on the original work of [Hamuchiwa](https://github.com/hamuchiwa/AutoRCCar), I incorporated image preprocessing in OpenCV and used Keras (TensorFlow backend) to train a neural network that could drive a remote control (RC) car and detect common environmental variables using computer vision. This project fulfilled the capstone requirement for my graduation from the Data Science Immersive program at Galvanize in Austin, Texas (August-November 2016). For a high-level overview of this project, please see this slide deck:.
 
 ## Motivation
   I've been following developments in the field of autonomous vehicles for several years now, and I'm very interested in the impacts these developments will have on public policy and in our daily lives. I wanted to learn more about the underlying machine learning techniques that make autonomous driving possible. Lacking access and resources to work with actual self-driving cars, I was happy to find that it was possible to work with an RC model, and I'm very grateful to Hamuchiwa for having demonstrated these possibilities through his own self-driving RC car project.
-  
-  ![alt tag](https://cloud.githubusercontent.com/assets/9688260/20187772/41067a5a-a73b-11e6-95be-035bb971835f.jpg)
 
+## The car
 <p align="center">
-  <img src="https://cloud.githubusercontent.com/assets/9688260/20187772/41067a5a-a73b-11e6-95be-035bb971835f.jpg" width="350"/>
+  <img src="https://cloud.githubusercontent.com/assets/9688260/20187772/41067a5a-a73b-11e6-95be-035bb971835f.jpg" width="700"/>
 </p>
 
 ## Primary Python packages used
@@ -69,7 +68,10 @@
 ## Tying it all together
   After training my model, I began to feed it images on my laptop to see what kind of predictions it made. It was very exciting to see it spit out accurate directions given various pictures of the track (e.g., given a picture of a straight segment of track, the model predicted "Forward").
   The moment of truth came when I implemented the code for the trained model into the script that drove the car. A couple seconds after hitting enter, I heard the car begin to move by itself. At the moment, I felt like:
-  [Tom Hanks in CastAway, "Look at what I have created! I. Have made. Car drive itself!"]
+
+<p align="center">
+  <img src="https://cloud.githubusercontent.com/assets/9688260/20187773/4232f516-a73b-11e6-8782-067438af4388.jpg" width="500"/>
+</p>
   
 ## Future goals
   Watching the car drive itself around the track is pretty amazing, but the mistakes it makes are fascinating in their own way. I'm interested in experimenting with ***reinforcement learning*** techniques that could potentially help the car get out of mistakes and find its way back onto the track by itself.
