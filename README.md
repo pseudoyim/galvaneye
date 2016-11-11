@@ -66,7 +66,7 @@
   I attempted to add convolutional layers to the model to see if that would increase accuracy. In the end, these attempts did not pan out and I never got an accuracy above 50% using convolution.
 
 ## Tying it all together
-  After training my model, I began to feed it image frames on my laptop to see what kind of predictions it made. It was very exciting to see it output accurate directions given various frames of the track ("Left"==[1,0,0]; "Right"==[0,1,0]; "Forward"==[0,0,1]):
+  After training my first model, I began to feed it image frames on my laptop to see what kind of predictions it made. It was very exciting to see it output accurate directions given various frames of the track ("Left"==[1,0,0]; "Right"==[0,1,0]; "Forward"==[0,0,1]):
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/9688260/20226904/a06f25b2-a80f-11e6-85b0-a5df06bf2887.png" width="700"/>
 </p>
