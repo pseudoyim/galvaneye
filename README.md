@@ -42,7 +42,7 @@
   - ***img_collect_negatives.py***: Run this to collect full image frames to use as negative samples when training the Haar Cascade.
   - ***img_filter_multiply.py***: Runs in conjunction with ***img_augment.py*** to apply Canny filter, flip, and double training set images.
   - ***nn_training.py***: Run this to train the neural network.
-  - ***nn_training_conv.py***: Run this to train a neural network with convolutionl layers. (I ran this on AWS EC2 instance because it took a very long time. In the end, convultional layers did not help my model).
+  - ***nn_training_conv.py***: Run this to train a neural network with convolutional layers. (I ran this on AWS EC2 instance because it took a very long time. In the end, convultional layers did not help my model).
   
 - notes/ 
   - Contains notes on how to run configurations for Raspberry Pi and OpenCV functions. The OpenCV functions are not very user-friendly, especially the steps required for creating sample images and training the Haar Cascade .xml file. I performed the Haar Cascade training on an AWS EC2 instance so that it would run faster and allow me to keep working on my laptop.
