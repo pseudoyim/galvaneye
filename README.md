@@ -62,7 +62,7 @@
   2. Manually driving the car around the track, a few inches at a time. Each time I pressed an arrow key, the car moved in that direction and it captured an image of the road in front of it, along with the direction I told it to move at that instance. I collected over 5,000 data points in this manner, which took about ten hours over the course of three days. Fortunately, after running the ***img_augment.py*** and ***img_filter_multiply.py*** scripts, I had over 30,000 training images to work with.
 
 ## Training the neural network
-  I used Keras (TensorFlow backend). Following Hamuchiwa's example, I kept the structure simple, with only one hidden layer. After training my best model, I was able to get an accuracy of about 81% on cross-validation. This model was used to have the car drive itself. On average, the car makes about one mistake per lap. In this context, a "mistake" could be defined as the car driving outside of the lanes without finding its way back onto the track.
+  I used Keras (TensorFlow backend). Following Hamuchiwa's example, I kept the structure simple, with only one hidden layer. After training my best model, I was able to get an accuracy of about 81% on cross-validation. This model was used to have the car drive itself. On average, the car makes about one mistake per lap. In this context, a "mistake" could be defined as the car driving outside of the lanes with no hope of being able to find its way back.
   I attempted to add convolutional layers to the model to see if that would increase accuracy. In the end, these attempts did not pan out and I never got an accuracy above 50% using convolution.
 
 ## Tying it all together
