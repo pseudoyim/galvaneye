@@ -37,7 +37,7 @@
     - training image data for neural network in npz format
   - ***autonomous.py***: Drives the car and detects stop signs and pedestrians.
   - ***car.py***: The library that sends driving commands to the Arduino.
-  - ***img_augment.py***: Augments images (shifts and jiggles images) to create additional training samples. Works in conjunction with ***img_filter_multiply***, which then flips and doubles the size of the training dataset.
+  - ***img_augment.py***: Augments images (shifts and jiggles images) to create additional training samples. Works in conjunction with ***img_filter_multiply.py***, which then flips and doubles the size of the training dataset.
   - ***img_collect.py***: Run this to collect training data images.
   - ***img_collect_negatives.py***: Run this to collect full image frames to use as negative samples when training the Haar Cascade.
   - ***img_filter_multiply.py***: Runs in conjunction with ***img_augment.py*** to apply Canny filter, flip, and double training set images.
@@ -66,7 +66,10 @@
   I attempted to add convolutional layers to the model to see if that would increase accuracy. In the end, these attempts did not pan out and I never got an accuracy above 50% using convolution.
 
 ## Tying it all together
-  After training my model, I began to feed it images on my laptop to see what kind of predictions it made. It was very exciting to see it spit out accurate directions given various pictures of the track (e.g., given a picture of a straight segment of track, the model predicted "Forward").
+  After training my model, I began to feed it image frames on my laptop to see what kind of predictions it made. It was very exciting to see it output accurate directions given various frames of the track ("Left"==[1,0,0]; "Right"==[0,1,0]; "Forward"==[0,0,1]):
+<p align="center">
+  <img src="https://cloud.githubusercontent.com/assets/9688260/20226904/a06f25b2-a80f-11e6-85b0-a5df06bf2887.png" width="700"/>
+</p>
   The moment of truth came when I implemented the code for the trained model into the script that drove the car. A couple seconds after hitting "enter", I heard the car begin to move by itself. At that moment, I felt like:
 
 <p align="center">
