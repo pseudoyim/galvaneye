@@ -12,7 +12,7 @@ from keras.layers import Dense, Activation
 from keras.models import Sequential
 import keras.models
 
-
+dir_log = []
 SIGMA = 0.33
 stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign_pjy.xml')
 timestr = time.strftime('%Y%m%d_%H%M%S')
@@ -20,12 +20,15 @@ timestr = time.strftime('%Y%m%d_%H%M%S')
 
 class RCDriver(object):
 
+    global dir_log
+
     def steer(self, prediction):
 
         # FORWARD
         if np.all(prediction   == [ 0., 0., 1.]):
             car.forward(100)
             car.pause(300)
+            dir_log.append('Forward')
             print 'Forward'
 
         # FORWARD-LEFT
@@ -34,6 +37,7 @@ class RCDriver(object):
             car.forward_left(200)
             car.left(700)
             car.pause(200)
+            dir_log.append('Left')
             print 'Left'
 
         # FORWARD-RIGHT
@@ -42,6 +46,7 @@ class RCDriver(object):
             car.forward_right(200)
             car.right(700)
             car.pause(200)
+            dir_log.append('Right')
             print 'Right'
 
     def stop(self):
@@ -100,13 +105,73 @@ class ObjectDetection(object):
             cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
             cv2.putText(image, 'PEDESTRIAN', (xA, yA-10), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 2)
 
-
-
-        # AM I STUCK
-        
-
-
 obj_detection = ObjectDetection()
+
+
+
+class DifferenceDetector(object):
+
+    def __init__(self):
+        self.previous_img = None
+        self.thresh = 100           # some value between 0-255.
+        self.ctrlz_thresh = 0.05    # e.g. if images are < 5% different (i.e. 95% the same), then activate ctrl-z mode.
+
+    def compare(self, current_img):
+
+        # First time.
+        if self.previous_img is None:
+            self.previous_img = current_img
+
+        # cv2.threshold 'activates' (turns white) only those pixels that meet a certain threshold requirement. Everything below that is black.
+        # 'difference' shows the difference between two images, only showing those pixels that meet the threshold that was set.
+        difference = cv2.threshold(np.abs(cv2.subtract(self.previous_img, current_img)), self.thresh, 255, cv2.THRESH_BINARY)[1]
+        self.previous_img = current_img
+
+        return difference
+
+
+    def make_decision(self, difference):
+
+        # Calculate the percent_difference to decide whether to act on 'difference'
+        calc_difference = np.sum(difference)
+        max_difference  = np.sum(255*difference.shape)
+        percent_difference = float(calc_difference) / max_difference
+
+        # If percent_difference is below ctrlz_thresh (i.e. the two images are < 5% different), then commence ctrl-z protocol.
+        if percent_difference <= self.ctrlz_thresh:
+
+            width  = difference.shape[1]
+            margin = (width/3) / 2
+            mid    = width/2
+            left   = mid - margin
+            right  = mid + margin
+
+            panel1 = np.sum(difference[ : ,      :left ])
+            panel2 = np.sum(difference[ : , left :right])
+            panel3 = np.sum(difference[ : , right:     ])
+
+            panel_vals = {'left':panel1, 'forward':panel2, 'right':panel3}
+
+            # print max(panel_vals, key=panel_vals.get)
+            # return difference
+            return max(panel_vals, key=panel_vals.get)
+
+        else:
+            # print 'NONE'
+            return None
+
+
+    # AM I STUCK
+    def am_i_stuck(self, gray_image):
+    # Compare current frame with previous.
+    # if same (difference is < some threshold): then activate 'ctrl-z' mode.
+
+
+
+diff_detect = DifferenceDetector()
+
+
+
 
 
 
@@ -156,7 +221,6 @@ class NeuralNetwork(object):
     def fetch(self):
 
         frame = 0
-
         while self.receiving:
 
             # There's a chance that the Main thread can get to this point before the New thread begins streaming images.
@@ -170,6 +234,9 @@ class NeuralNetwork(object):
 
             # Object detection
             obj_detection.detect(stop_classifier, gray, image)
+
+            # Compare current and previous images to deduce whether car is stuck (not moving)
+            diff_detect.compare(gray)
 
             # Lower half of the grayscale image
             roi = gray[120:240, :]
@@ -206,8 +273,6 @@ class NeuralNetwork(object):
                 prediction_english = 'RIGHT'
                 prediction_english_proba = proba_right
 
-
-            # cv2.putText(gray, "Model prediction: {}".format(prediction_english), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
             cv2.putText(gray, "Prediction (sig={}): {}, {:>05}".format(SIGMA, prediction_english, prediction_english_proba), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
             cv2.imwrite('test_frames_temp/frame{:>05}.jpg'.format(frame), gray)
             frame += 1
@@ -244,7 +309,6 @@ class PiVideoStream(object):
         self.start()
 
 
-
     def start(self):
     	# start the thread to read frames from the video stream
         print 'Starting PiVideoStream thread...'
@@ -259,7 +323,6 @@ class PiVideoStream(object):
         # Main thread diverges from the new thread and activates the neural_network
         # The piVideoObject argument ('self') passes the PiVideoStream class object to NeuralNetwork.
         NeuralNetwork(receiving=True, piVideoObject=self)
-
 
 
     def update(self):
