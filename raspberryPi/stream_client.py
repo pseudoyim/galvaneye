@@ -10,12 +10,17 @@ import socket
 import struct
 import time
 import picamera
+import pygame
 
 
 # create socket and bind host
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('192.168.1.100', 8000))
 connection = client_socket.makefile('wb')
+
+pygame.mixer.init()
+pygame.mixer.music.load("HORN4.wav")
+pygame.mixer.music.play()
 
 try:
     with picamera.PiCamera() as camera:
