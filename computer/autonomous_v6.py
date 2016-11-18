@@ -20,8 +20,6 @@ timestr = time.strftime('%Y%m%d_%H%M%S')
 
 class RCDriver(object):
 
-    global dir_log
-
     def steer(self, prediction):
 
         # FORWARD
@@ -111,10 +109,13 @@ obj_detection = ObjectDetection()
 
 class DifferenceDetector(object):
 
+    global dir_log
+
     def __init__(self):
         self.previous_img = None
         self.thresh = 100           # some value between 0-255.
-        self.ctrlz_thresh = 0.05    # e.g. if images are < 5% different (i.e. 95% the same), then activate ctrl-z mode.
+        self.ctrlz_thresh = 0.05    # e.g. if consecutive images are < 5% different (i.e. 95% the same), then activate ctrl-z mode.
+        self.ctrlz_iter = 10
 
     def compare(self, current_img):
 
@@ -122,8 +123,9 @@ class DifferenceDetector(object):
         if self.previous_img is None:
             self.previous_img = current_img
 
+        # All subsequent.
         # cv2.threshold 'activates' (turns white) only those pixels that meet a certain threshold requirement. Everything below that is black.
-        # 'difference' shows the difference between two images, only showing those pixels that meet the threshold that was set.
+        # 'difference' shows the difference between two images, only showing those pixels that meet/exceed the threshold that was set.
         difference = cv2.threshold(np.abs(cv2.subtract(self.previous_img, current_img)), self.thresh, 255, cv2.THRESH_BINARY)[1]
         self.previous_img = current_img
 
@@ -140,38 +142,38 @@ class DifferenceDetector(object):
         # If percent_difference is below ctrlz_thresh (i.e. the two images are < 5% different), then commence ctrl-z protocol.
         if percent_difference <= self.ctrlz_thresh:
 
-            width  = difference.shape[1]
-            margin = (width/3) / 2
-            mid    = width/2
-            left   = mid - margin
-            right  = mid + margin
+            # Activate ctrl-z mode
+            print '< < < CTRL-Z MODE ACTIVATED! > > >'
 
-            panel1 = np.sum(difference[ : ,      :left ])
-            panel2 = np.sum(difference[ : , left :right])
-            panel3 = np.sum(difference[ : , right:     ])
+            # Get the last 10 directions executed from the log (or however many you specified for self.ctrlz_iter)
+            recent_dirs          = dir_log[ -self.ctrlz_iter : ]
+            recent_dirs_reversed = recent_dirs.reverse()
 
-            panel_vals = {'left':panel1, 'forward':panel2, 'right':panel3}
+            for each in recent_dirs_reversed:
 
-            # print max(panel_vals, key=panel_vals.get)
-            # return difference
-            return max(panel_vals, key=panel_vals.get)
+                # Forward -> Reverse
+                if each == 'Forward':
+                    car.reverse(100)
+                    car.pause(300)
+                    print '< REVERSE >'
 
-        else:
-            # print 'NONE'
-            return None
+                # Left -> Right
+                elif each == 'Left':
+                        car.right(300)
+                        car.reverse_right(200)
+                        car.right(700)
+                        car.pause(200)
+                        print '< REVERSE-RIGHT >'
 
-
-    # AM I STUCK
-    def am_i_stuck(self, gray_image):
-    # Compare current frame with previous.
-    # if same (difference is < some threshold): then activate 'ctrl-z' mode.
-
-
+                # FORWARD-RIGHT
+            elif each == 'Right':
+                        car.left(300)
+                        car.reverse_left(200)
+                        car.left(700)
+                        car.pause(200)
+                        print '< REVERSE-LEFT >'
 
 diff_detect = DifferenceDetector()
-
-
-
 
 
 
@@ -237,6 +239,7 @@ class NeuralNetwork(object):
 
             # Compare current and previous images to deduce whether car is stuck (not moving)
             diff_detect.compare(gray)
+            diff_detect.make_decision(self)
 
             # Lower half of the grayscale image
             roi = gray[120:240, :]
