@@ -10,30 +10,30 @@
 </p>
 
 ## Primary Python packages used
-  - OpenCV v3.1.0
-  - Keras (TensorFlow backend)
-  - Numpy
-  - Scikit-learn
+  - [OpenCV v3.1.0](http://opencv.org/opencv-3-1.html)
+  - [Keras (TensorFlow backend)](https://keras.io/)
+  - [Numpy](http://www.numpy.org/)
+  - [Scikit-learn](http://scikit-learn.org/stable/)
 
 ## Code
-- computer/ 
-  -	augmented/ 
+- [computer/](https://github.com/pseudoyim/galvaneye/tree/master/computer)
+  -	[augmented/](https://github.com/pseudoyim/galvaneye/tree/master/computer/augmented)
     - stores augmented images when running ***img_augment.py***
-  -	cascade_xml/ 
+  -	[cascade_xml/](https://github.com/pseudoyim/galvaneye/tree/master/computer/cascade_xml)
     - trained cascade xml files for stop sign detection
-  -	images/ 
+  -	[images/](https://github.com/pseudoyim/galvaneye/tree/master/computer/images)
     - folders containing frames collected on each data collection run
-  -	logs/ 
+  -	[logs/](https://github.com/pseudoyim/galvaneye/tree/master/computer/logs)
     - recorded logs of each data collection run
-  -	nn_h5/ 
+  -	[nn_h5/](https://github.com/pseudoyim/galvaneye/tree/master/computer/nn_h5)
     - saved model weights and architecture (h5 file format used in Keras)
-  -	notebooks/ 
+  -	[notebooks/](https://github.com/pseudoyim/galvaneye/tree/master/computer/notebooks)
     - Jupyter Notebook files where I tested out various code
-  -	test_frames_SAVED/ 
+  -	[test_frames_SAVED/](https://github.com/pseudoyim/galvaneye/tree/master/computer/test_frames_SAVED)
     - saved frames from each test run where the car drove itself
-  -	test_frames_temp/ 
+  -	[test_frames_temp/](https://github.com/pseudoyim/galvaneye/tree/master/computer/test_frames_temp)
     - temp location before in-progress test frames are moved to ***test_frames_SAVED/***
-  -	training_data/ 
+  -	[training_data/](https://github.com/pseudoyim/galvaneye/tree/master/computer/training_data)
     - training image data for neural network in npz format
   - ***autonomous.py***: Drives the car and detects stop signs and pedestrians.
   - ***car.py***: The library that sends driving commands to the Arduino.
@@ -44,13 +44,13 @@
   - ***nn_training.py***: Run this to train the neural network.
   - ***nn_training_conv.py***: Run this to train a neural network with convolutional layers. (I ran this on AWS EC2 instance because it took a very long time. In the end, convultional layers did not help my model).
   
-- notes/ 
+- [notes/](https://github.com/pseudoyim/galvaneye/tree/master/notes)
   - Contains notes on how to run configurations for Raspberry Pi and OpenCV functions. The OpenCV functions are not very user-friendly, especially the steps required for creating sample images and training the Haar Cascade .xml file. I performed the Haar Cascade training on an AWS EC2 instance so that it would run faster and allow me to keep working on my laptop.
 
-- raspberry_pi/ 
+- [raspberry_pi/](https://github.com/pseudoyim/galvaneye/tree/master/raspberryPi)
   -	***stream_client.py***: Unchanged from Hamuchiwa's version ("If it ain't broke, don't fix it"). Streams video frames in jpeg format from the Pi (client) to the host (computer).
 
-- test/ 
+- [test/](https://github.com/pseudoyim/galvaneye/tree/master/test)
   - Python scripts to test various components of this project, including:
     - controlling car with Python programming
     - controlling car manually using arrow keys
