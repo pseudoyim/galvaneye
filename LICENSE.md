@@ -1,3 +1,8 @@
+Copyright (c) 2016, Paul Yim
+
+This repository contains code by hamuchiwa. You can obtain a copy of the original code at: https://github.com/hamuchiwa/AutoRCCar
+Below is hamuchiwa's original copyright notice:
+
 Copyright (c) 2015, hamuchiwa
 All rights reserved.
 
