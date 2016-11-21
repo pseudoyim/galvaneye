@@ -116,6 +116,7 @@ class DifferenceDetector(object):
         self.thresh = 100           # some value between 0-255.
         self.ctrlz_thresh = 0.05    # e.g. if consecutive images are < 5% different (i.e. 95% the same), then activate ctrl-z mode.
         self.ctrlz_iter = 10
+        self.difference = None
 
     def compare(self, current_img):
 
@@ -126,18 +127,24 @@ class DifferenceDetector(object):
         # All subsequent.
         # cv2.threshold 'activates' (turns white) only those pixels that meet a certain threshold requirement. Everything below that is black.
         # 'difference' shows the difference between two images, only showing those pixels that meet/exceed the threshold that was set.
-        difference = cv2.threshold(np.abs(cv2.subtract(self.previous_img, current_img)), self.thresh, 255, cv2.THRESH_BINARY)[1]
+        diff = cv2.threshold(np.abs(cv2.subtract(self.previous_img, current_img)), self.thresh, 255, cv2.THRESH_BINARY)[1]
         self.previous_img = current_img
 
-        return difference
+        self.difference = diff
+        return diff
 
 
-    def make_decision(self, difference):
+    def make_decision(self):
 
         # Calculate the percent_difference to decide whether to act on 'difference'
-        calc_difference = np.sum(difference)
-        max_difference  = np.sum(255*difference.shape)
+
+        print 'make_decision1'
+
+        calc_difference    = np.sum(self.difference)
+        max_difference     = np.sum(255 * self.difference.shape)
         percent_difference = float(calc_difference) / max_difference
+
+        print 'make_decision2'
 
         # If percent_difference is below ctrlz_thresh (i.e. the two images are < 5% different), then commence ctrl-z protocol.
         if percent_difference <= self.ctrlz_thresh:
@@ -159,19 +166,19 @@ class DifferenceDetector(object):
 
                 # Left -> Right
                 elif each == 'Left':
-                        car.right(300)
-                        car.reverse_right(200)
-                        car.right(700)
-                        car.pause(200)
-                        print '< REVERSE-RIGHT >'
+                    car.right(300)
+                    car.reverse_right(200)
+                    car.right(700)
+                    car.pause(200)
+                    print '< REVERSE-RIGHT >'
 
                 # FORWARD-RIGHT
-            elif each == 'Right':
-                        car.left(300)
-                        car.reverse_left(200)
-                        car.left(700)
-                        car.pause(200)
-                        print '< REVERSE-LEFT >'
+                elif each == 'Right':
+                    car.left(300)
+                    car.reverse_left(200)
+                    car.left(700)
+                    car.pause(200)
+                    print '< REVERSE-LEFT >'
 
 diff_detect = DifferenceDetector()
 
@@ -189,6 +196,8 @@ class NeuralNetwork(object):
         # PiVideoStream class object is now here.
         self.piVideoObject = piVideoObject
         self.rcdriver = RCDriver()
+
+        print 'good NeuralNetwork_init'
 
         self.fetch()
 
@@ -223,7 +232,11 @@ class NeuralNetwork(object):
     def fetch(self):
 
         frame = 0
+        print 'good fetch1'
+
         while self.receiving:
+
+            print 'good fetch2'
 
             # There's a chance that the Main thread can get to this point before the New thread begins streaming images.
             # To account for this, we create the jpg variable but set to None, and keep checking until it actually has something.
@@ -231,15 +244,23 @@ class NeuralNetwork(object):
             while jpg is None:
                 jpg = self.piVideoObject.frame
 
+            print 'good fetch3'
+
             gray  = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
             image = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+
+            print 'good fetch4'
 
             # Object detection
             obj_detection.detect(stop_classifier, gray, image)
 
+            print 'good fetch5'
+
             # Compare current and previous images to deduce whether car is stuck (not moving)
             diff_detect.compare(gray)
-            diff_detect.make_decision(self)
+            diff_detect.make_decision()
+
+            print 'good fetch6'
 
             # Lower half of the grayscale image
             roi = gray[120:240, :]
@@ -294,7 +315,7 @@ class PiVideoStream(object):
     def __init__(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.server_socket.bind(('192.168.1.66', 8000)) # The IP address of your computer (Paul's MacBook Air). This script should run before the one on the Pi.
-        self.server_socket.bind(('10.10.10.1', 8000)) # The IP address of your computer (Paul's MacBook Air). This script should run before the one on the Pi.
+        self.server_socket.bind(('10.10.10.2', 8000)) # The IP address of your computer (Paul's MacBook Air). This script should run before the one on the Pi.
 
 
         print 'Listening...'
@@ -369,6 +390,6 @@ if __name__ == '__main__':
         video_stream.stop()
         print '\n! Received keyboard interrupt, quitting threads.\n'
 
-    finally:
-        video_stream.connection.close()
-        print '...done.\n'
+    # finally:
+    #     video_stream.connection.close()
+    #     print '...done.\n'
