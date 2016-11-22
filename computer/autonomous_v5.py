@@ -298,7 +298,7 @@ if __name__ == '__main__':
         car.pause(10000)
         video_stream.stop()
         print '\n! Received keyboard interrupt, quitting threads.\n'
-    #
-    # finally:
-    #     video_stream.connection.close()
-    #     print '...done.\n'
+
+    finally:
+        video_stream.connection.close()
+        print '...done.\n'
