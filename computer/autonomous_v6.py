@@ -106,7 +106,8 @@ class ObjectDetection(object):
 obj_detection = ObjectDetection()
 
 
-
+# THIS IS A BUST. Supposed to check if car was stuck.
+# See version 7, which attempts to check for signal in lower Left and Right corners of each image. If that works, "am i stuck" mode would be moot.
 class DifferenceDetector(object):
 
     global dir_log

@@ -13,7 +13,7 @@ from keras.models import Sequential
 import keras.models
 
 
-SIGMA = 0.33
+SIGMA = 0.27
 stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign_pjy.xml')
 timestr = time.strftime('%Y%m%d_%H%M%S')
 
