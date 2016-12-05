@@ -126,9 +126,10 @@ class TrustButVerify(object):
         right_corner = last_row[ -img_corner_width : ]
 
         # GOAL: Need a sum of 255 in either corner, which means at least the edge of a lane marker is visible in a corner
-        # If either corner < 255, then ctrl-z mode
+        # If either corner < 255, then return False to activate ctrl-z mode
         if sum(left_corner) < 255 or sum(right_corner) < 255:
             return False
+        return True
 
 
     def ctrl_z(self):
@@ -158,11 +159,6 @@ class TrustButVerify(object):
             car.left(700)
             car.pause(200)
             print '< REVERSE-LEFT >'
-
-        # Then, where it previously made the wrong decision, go with the second argmax (assumes the same prediction probs will be calculated)
-
-
-        # Finally, go back to normal neural net prediction
 
 TBV = TrustButVerify()
 
@@ -268,26 +264,26 @@ class NeuralNetwork(object):
 
             # *** NEW FEATURE ***
             print 'Trust but verify'
-            # Check for signal in lower corners of image (boolean)
+            # Check for signal in lower corners of image (boolean). If True, then s'all good. If Not, then...
             if not TBV.scan_for_signal(auto):
 
-                # TBV.ctrl_z() takes them back one step
+                # TBV.ctrl_z() takes car back one step, then ctrl_z_mode is now True.
                 TBV.ctrl_z()
                 self.ctrl_z_mode = True
                 continue                        # return to top of while loop to get a fresh jpg
 
-            # If TBV.scan_for_signal returned False, ctrl_z_mode is now True. Proceed with model's second best prediction.
+            # If TBV.scan_for_signal() returned False, ctrl_z_mode is now True. Proceed with model's second best prediction.
             if self.ctrl_z_mode:
                 prediction, probas = self.predict_second_best(auto)
+                # Switch ctrl_z_mode back to False.
                 self.ctrl_z_mode = False
 
-            # If TBV.scan_for_signal returned True, then all is well, and model makes prediciton for argmax.
-            # prediction = self.model.predict(auto)
+            # If TBV.scan_for_signal returned True, then all is well. ctrl_z_mode is False, and model makes prediciton on argmax proba.
             else:
                 prediction, probas = self.predict(auto)
 
             # Save frame and prediction record for debugging research
-            prediction_english = None
+            prediction_english       = None
             prediction_english_proba = None
 
             proba_left, proba_right, proba_forward = probas[0]
