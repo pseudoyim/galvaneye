@@ -1,8 +1,8 @@
 '''
-Notes:
-After executing ctrl-z, the nn isn't taking the second-best proba from the previous prediction array.
-It's making a new prediction, and then going with the second-best from that array.
-In v.8, make it take the second-best from the previous prediction.
+NOTES
+Goal: Make nn take the second-best from the previous prediction.
+Result:
+
 '''
 
 

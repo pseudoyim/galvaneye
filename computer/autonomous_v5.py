@@ -267,21 +267,21 @@ class PiVideoStream(object):
                 self.frame = self.stream_bytes[first:last + 2]
                 self.stream_bytes = self.stream_bytes[last + 2:]
 
-		# if the thread indicator variable is set, stop the thread
-		# and resource camera resources
-		if self.stopped:
-			self.connection.close()
-			return
+		# # if the thread indicator variable is set, stop the thread
+		# # and resource camera resources
+		# if self.stopped:
+		# 	self.connection.close()
+		# 	return
 
 
 	def read(self):
 		# return the frame most recently read
 		return self.frame
 
-
-	def stop(self):
-		# indicate that the thread should be stopped
-		self.stopped = True
+    #
+	# def stop(self):
+	# 	# indicate that the thread should be stopped
+	# 	self.stopped = True
 
 
 
@@ -290,15 +290,20 @@ if __name__ == '__main__':
         # Create an instance of PiVideoStream class
         video_stream = PiVideoStream()
 
-    except (KeyboardInterrupt):
+    except KeyboardInterrupt:
         # Rename the folder that collected all of the test frames. Then make a new folder to collect next round of test frames.
         os.rename(  './test_frames_temp', './test_frames_SAVED/test_frames_{}'.format(timestr))
         os.makedirs('./test_frames_temp')
-        print '\nTerminating\n'
+        print '\nTerminating...\n'
         car.pause(10000)
-        video_stream.stop()
-        print '\n! Received keyboard interrupt, quitting threads.\n'
 
-    finally:
+        # Close video_stream thread.
+        video_stream = PiVideoStream()
+        video_stream.stop()
         video_stream.connection.close()
-        print '...done.\n'
+
+        # Close serial connection to Arduino controller.
+        ser = serial.Serial(port.device, 9600)
+        ser.close()
+
+        print '\nDone.\n'
