@@ -5,7 +5,6 @@ Result:
 
 '''
 
-
 import car
 import cv2
 import numpy as np
@@ -20,9 +19,9 @@ from keras.layers import Dense, Activation
 from keras.models import Sequential
 import keras.models
 
-dir_log = []
-SIGMA = 0.40
-stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign_pjy.xml')
+dir_log = ['Forward']
+SIGMA = 0.33
+stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign.xml')
 timestr = time.strftime('%Y%m%d_%H%M%S')
 
 
@@ -133,17 +132,17 @@ class TrustButVerify(object):
         left_corner  = last_row[  : img_corner_width + 1]
         right_corner = last_row[ -img_corner_width : ]
 
-        # GOAL: Need a sum of 255 in either corner, which means at least the edge of a lane marker is visible in a corner
+        # GOAL: Need a sum of 255 in both corners, which means at least the edge of a lane marker is visible in a corner
         # If either corner < 255, then return False to activate ctrl-z mode
         if sum(left_corner) < 255 or sum(right_corner) < 255:
-            print 'SIGNAL IN ONE CORNER NOT PRESENT'
+            print '\nSIGNAL IN ONE CORNER NOT PRESENT'
             return False
         return True
 
 
     def ctrl_z(self):
 
-        print '\n< < < CTRL-Z MODE ACTIVATED! > > >'
+        print '< < < CTRL-Z MODE > > >'
 
         last_dir = dir_log[-1]
 
@@ -151,7 +150,7 @@ class TrustButVerify(object):
         if last_dir == 'Forward':
             car.reverse(200)
             car.pause(500)
-            print '< REVERSE >'
+            print '< REVERSE >\n'
 
         # Left -> Reverse-Left
         elif last_dir == 'Left':
@@ -159,7 +158,7 @@ class TrustButVerify(object):
             car.reverse_left(250)
             car.left(700)
             car.pause(500)
-            print '< REVERSE-LEFT >'
+            print '< REVERSE-LEFT >\n'
 
         # Right -> Reverse-Right
         elif last_dir == 'Right':
@@ -167,7 +166,7 @@ class TrustButVerify(object):
             car.reverse_right(250)
             car.right(700)
             car.pause(500)
-            print '< REVERSE-RIGHT >'
+            print '< REVERSE-RIGHT >\n'
 
         return
 
@@ -181,7 +180,6 @@ class NeuralNetwork(object):
     global timestr
 
     def __init__(self, receiving=False, piVideoObject=None):
-        self.ctrl_z_mode = False
         self.receiving = receiving
         self.model = keras.models.load_model('nn_h5/nn.h5')
 
@@ -189,7 +187,7 @@ class NeuralNetwork(object):
         self.piVideoObject = piVideoObject
         self.rcdriver = RCDriver()
 
-        print 'NeuralNetwork_init OK'
+        print 'NeuralNetwork init OK'
 
         self.fetch()
 
@@ -215,36 +213,33 @@ class NeuralNetwork(object):
     def predict(self, image):
         image_array = self.preprocess(image)
         y_hat       = self.model.predict(image_array)
-        i_max       = np.argmax(y_hat)
-        y_hat_final = np.zeros((1,3))
-        np.put(y_hat_final, i_max, 1)
-        return y_hat_final[0], y_hat
 
+        # First choice
+        i_max_first       = np.argmax(y_hat)
+        y_hat_final_first = np.zeros((1,3))
+        np.put(y_hat_final_first, i_max_first, 1)
 
-    def predict_second_best(self, image):
-        image_array  = self.preprocess(image)
-        y_hat        = self.model.predict(image_array)
-        print 'y_hat:', y_hat
-
+        # Need to convert y_hat to a list to sort and find the second best pred.
         y_hat_list = []
-
         for each in y_hat[0]:
             y_hat_list.append(each)
 
-        print 'y_hat as list', y_hat_list
-
+        # Second choice
         i_max_second = np.argsort(y_hat_list)[::-1][1]
-        print 'i_max_second', i_max_second
+        y_hat_final_second = np.zeros((1,3))
+        np.put(y_hat_final_second, i_max_second, 1)
 
-        y_hat_final  = np.zeros((1,3))
-        np.put(y_hat_final, i_max_second, 1)
-        return y_hat_final[0], y_hat
-
+        first_choice_pred  = y_hat_final_first[0]
+        second_choice_pred = y_hat_final_second[0]
+        return first_choice_pred, second_choice_pred, y_hat
 
 
     def fetch(self):
 
         frame = 0
+        second_best = None
+        previous_probas = None
+        pred_rank = None
 
         while self.receiving:
 
@@ -274,25 +269,26 @@ class NeuralNetwork(object):
             cv2.imshow('What the model sees', auto)
 
 
-
             # *** NEW FEATURE: Trust but verify (TBV) ***
             # Check for signal in lower corners of image (boolean). If True, then s'all good. If Not, then...
             if not TBV.scan_for_signal(auto):
 
-                # TBV.ctrl_z() takes car back one step, then ctrl_z_mode is now True.
-                TBV.ctrl_z()
-                self.ctrl_z_mode = True
-                continue                        # return to top of while loop to get a fresh jpg
+                if frame == 0:
+                    continue
 
-            # If TBV.scan_for_signal() returned False, ctrl_z_mode is now True. Proceed with model's second best prediction.
-            if self.ctrl_z_mode:
-                prediction, probas = self.predict_second_best(auto)
-                # Switch ctrl_z_mode back to False.
-                self.ctrl_z_mode = False
+                # TBV.ctrl_z() takes car back one step, and 'prediction' is now the second_best from previous run.
+                TBV.ctrl_z()
+                prediction = second_best
+                probas = previous_probas
+                pred_rank = 'second'
 
             # If TBV.scan_for_signal returned True, then all is well. ctrl_z_mode is False, and model makes prediciton on argmax proba.
             else:
-                prediction, probas = self.predict(auto)
+                first_choice, second_choice, probas = self.predict(auto)
+                second_best = second_choice     # second_choice from this run is assigned to global var, in case it's needed in next run.
+                previous_probas = probas
+                prediction  = first_choice
+                pred_rank = 'first'
 
             # Save frame and prediction record for debugging research
             prediction_english       = None
@@ -313,7 +309,7 @@ class NeuralNetwork(object):
                 prediction_english_proba = proba_right
 
             # Text on saved image
-            cv2.putText(gray, "Prediction (sig={}): {}, {:>05}".format(SIGMA, prediction_english, prediction_english_proba), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
+            cv2.putText(gray, "Prediction ({}): {}, {:>05}".format(pred_rank, prediction_english, prediction_english_proba), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
             cv2.putText(gray, "Forward: {}".format(proba_forward), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
             cv2.putText(gray, "Left:    {}".format(proba_left), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
             cv2.putText(gray, "Right:   {}".format(proba_right), (10, 80), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 255, 0), 1)
@@ -390,15 +386,16 @@ if __name__ == '__main__':
         video_stream = PiVideoStream()
 
     except KeyboardInterrupt:
+
         # Rename the folder that collected all of the test frames. Then make a new folder to collect next round of test frames.
         os.rename(  './test_frames_temp', './test_frames_SAVED/test_frames_{}'.format(timestr))
         os.makedirs('./test_frames_temp')
         print '\nTerminating...\n'
+        print 'CAR PAUSED'
         car.pause(10000)
 
         # Close video_stream thread.
         video_stream = PiVideoStream()
-        video_stream.stop()
         video_stream.connection.close()
 
         # Close serial connection to Arduino controller.
