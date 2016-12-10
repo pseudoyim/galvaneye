@@ -13,8 +13,8 @@ from keras.models import Sequential
 import keras.models
 
 
-SIGMA = 0.27
-stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign_pjy.xml')
+SIGMA = 0.33
+stop_classifier = cv2.CascadeClassifier('cascade_xml/stop_sign.xml')
 timestr = time.strftime('%Y%m%d_%H%M%S')
 
 
@@ -65,7 +65,7 @@ class ObjectDetection(object):
             scaleFactor=1.1,
             minNeighbors=10,
             minSize=(35, 35),
-            maxSize=(45, 45))
+            maxSize=(50, 50))
 
         # Draw a rectangle around stop sign
         for (x_pos, y_pos, width, height) in stop_sign_detected:

@@ -61,6 +61,9 @@ def reverse_right(ms):
     time.sleep(ms / 1000.)
     ser.write('0000\n')
 
+def stop():
+    ser.write('0000\n')
+
 def set(forward, reverse, left, right):
     forward = 1 if forward else 0
     reverse = 1 if reverse else 0

@@ -74,8 +74,8 @@ class ObjectDetection(object):
             gray_image,
             scaleFactor=1.1,
             minNeighbors=10,
-            minSize=(35, 35),
-            maxSize=(45, 45))
+            minSize=(50, 50),
+            maxSize=(55, 55))
 
         # Draw a rectangle around stop sign
         for (x_pos, y_pos, width, height) in stop_sign_detected:
@@ -119,7 +119,7 @@ class TrustButVerify(object):
 
     def __init__(self):
         # Arbitrarily designating a 'corner' as some % of width from either edge (e.g. 15%)
-        self.corner_pct = .15
+        self.corner_pct = .40
 
 
     def scan_for_signal(self, filtered_img):
@@ -155,7 +155,7 @@ class TrustButVerify(object):
         # Left -> Reverse-Left
         elif last_dir == 'Left':
             car.left(300)
-            car.reverse_left(250)
+            car.reverse_left(275)
             car.left(700)
             car.pause(500)
             print '< REVERSE-LEFT >\n'
@@ -163,7 +163,7 @@ class TrustButVerify(object):
         # Right -> Reverse-Right
         elif last_dir == 'Right':
             car.right(300)
-            car.reverse_right(250)
+            car.reverse_right(275)
             car.right(700)
             car.pause(500)
             print '< REVERSE-RIGHT >\n'
@@ -387,19 +387,15 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
 
+        car.stop()
+
         # Rename the folder that collected all of the test frames. Then make a new folder to collect next round of test frames.
         os.rename(  './test_frames_temp', './test_frames_SAVED/test_frames_{}'.format(timestr))
         os.makedirs('./test_frames_temp')
         print '\nTerminating...\n'
-        print 'CAR PAUSED'
-        car.pause(10000)
 
         # Close video_stream thread.
         video_stream = PiVideoStream()
         video_stream.connection.close()
-
-        # Close serial connection to Arduino controller.
-        ser = serial.Serial(port.device, 9600)
-        ser.close()
 
         print '\nDone.\n'
