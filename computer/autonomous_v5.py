@@ -65,7 +65,7 @@ class ObjectDetection(object):
             scaleFactor=1.1,
             minNeighbors=10,
             minSize=(35, 35),
-            maxSize=(50, 50))
+            maxSize=(55, 55))
 
         # Draw a rectangle around stop sign
         for (x_pos, y_pos, width, height) in stop_sign_detected:
