@@ -3,6 +3,7 @@ NOTES
 Goal: Make nn take the second-best from the previous prediction.
 Result:
 
+THIS ALSO SEEMS TO BE A BUST. KEEPS GETTING STUCK IN THESE LOOPS OF (predict; ctrl-z), ETC.
 '''
 
 import car

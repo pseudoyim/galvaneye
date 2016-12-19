@@ -1,8 +1,29 @@
 __author__ = 'pseudoyim'
 
 import pygame
+import RPi.GPIO as GPIO
 from pygame.locals import *
-import car
+
+left    = 11
+right   = 12
+forward = 13
+reverse = 15
+
+GPIO.setmode(GPIO.BOARD)       # Numbers pins by physical location
+
+GPIO.setup(left, GPIO.OUT)
+GPIO.output(left, GPIO.HIGH)
+
+GPIO.setup(right, GPIO.OUT)
+GPIO.output(right, GPIO.HIGH)
+
+GPIO.setup(forward, GPIO.OUT)
+GPIO.output(forward, GPIO.HIGH)
+
+GPIO.setup(reverse, GPIO.OUT)
+GPIO.output(reverse, GPIO.HIGH)
+
+
 
 class ManualDrive(object):
 
@@ -23,23 +44,21 @@ class ManualDrive(object):
 
                     # FORWARD
                     if key_input[pygame.K_UP]:
-                        car.forward(200)
+                        GPIO.output(forward, GPIO.LOW)
 
                     # FORWARD_RIGHT
                     elif key_input[pygame.K_RIGHT]:
-                        car.right(300)
-                        car.forward_right(300)
-                        car.right(500)
+                		GPIO.output(right, GPIO.LOW)
+                		GPIO.output(forward, GPIO.LOW)
 
                     # FORWARD_LEFT
                     elif key_input[pygame.K_LEFT]:
-                        car.left(300)
-                        car.forward_left(300)
-                        car.left(500)
+                    	GPIO.output(left, GPIO.LOW)
+                    	GPIO.output(forward, GPIO.LOW)
 
                     # REVERSE
                     elif key_input[pygame.K_DOWN]:
-                        car.reverse(200)
+                        GPIO.output(reverse, GPIO.LOW)
 
 
                     elif key_input[pygame.K_x] or key_input[pygame.K_q]:
