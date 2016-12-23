@@ -10,7 +10,7 @@ import socket
 import struct
 import time
 import picamera
-import pygame
+# import pygame
 
 
 # create socket and bind host
@@ -18,9 +18,9 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('192.168.1.100', 8000))
 connection = client_socket.makefile('wb')
 
-pygame.mixer.init()
-pygame.mixer.music.load("HORN4.wav")
-pygame.mixer.music.play()
+# pygame.mixer.init()
+# pygame.mixer.music.load("HORN4.wav")
+# pygame.mixer.music.play()
 
 try:
     with picamera.PiCamera() as camera:
@@ -36,7 +36,7 @@ try:
             connection.flush()
             stream.seek(0)
             connection.write(stream.read())
-            if time.time() - start > 600:
+            if time.time() - start > 600:   # This line automatically kills the program after 10 min.
                 break
             stream.seek(0)
             stream.truncate()

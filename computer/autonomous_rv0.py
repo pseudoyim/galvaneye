@@ -4,14 +4,14 @@ Attempt to incorporate ultrasonic sensor.
 '''
 
 import cv2
+import keras.models
 import numpy as np
 import os
+import RPi.GPIO as GPIO
 import socket
 import threading
 import time
-
 from imutils.object_detection import non_max_suppression
-import keras.models
 
 
 SIGMA = 0.33
@@ -21,6 +21,25 @@ timestr = time.strftime('%Y%m%d_%H%M%S')
 # # distance data measured by ultrasonic sensor
 # sensor_data = " "
 
+left    = 11
+right   = 12
+forward = 13
+reverse = 15
+
+GPIO.setmode(GPIO.BOARD)       # Numbers pins by physical location
+
+GPIO.setup(left, GPIO.OUT)
+GPIO.output(left, GPIO.HIGH)
+
+GPIO.setup(right, GPIO.OUT)
+GPIO.output(right, GPIO.HIGH)
+
+GPIO.setup(forward, GPIO.OUT)
+GPIO.output(forward, GPIO.HIGH)
+
+GPIO.setup(reverse, GPIO.OUT)
+GPIO.output(reverse, GPIO.HIGH)
+
 
 class RCDriver(object):
 
@@ -28,47 +47,34 @@ class RCDriver(object):
 
         # FORWARD
         if np.all(prediction   == [ 0., 0., 1.]):
-            car.forward(100)
-            car.pause(300)
-            print 'Forward'
+            print 'forward'
+        	GPIO.output(forward, GPIO.LOW)
+        	time.sleep(0.3)
+            GPIO.output(forward, GPIO.HIGH)
 
         # FORWARD-LEFT
         elif np.all(prediction == [ 1., 0., 0.]):
-            car.left(300)
-            car.forward_left(200)
-            car.left(700)
-            car.pause(200)
-            print 'Left'
+            print 'left'
+    		GPIO.output(left, GPIO.LOW)
+    		GPIO.output(forward, GPIO.LOW)
+    		time.sleep(0.4)
+    		GPIO.output(left, GPIO.HIGH)
+    		GPIO.output(forward, GPIO.HIGH)
 
         # FORWARD-RIGHT
         elif np.all(prediction == [ 0., 1., 0.]):
-            car.right(300)
-            car.forward_right(200)
-            car.right(700)
-            car.pause(200)
-            print 'Right'
+            print 'right'
+    		GPIO.output(right, GPIO.LOW)
+    		GPIO.output(forward, GPIO.LOW)
+    		time.sleep(2.0)
+    		GPIO.output(right, GPIO.HIGH)
+    		GPIO.output(forward, GPIO.HIGH)
 
     def stop(self):
         print '* * * STOPPING! * * *'
-        car.pause(5000)
+        time.sleep(4.0)
 
 rcdriver = RCDriver()
-
-
-# class SensorDataHandler(SocketServer.BaseRequestHandler):
-#
-#     data = " "
-#
-#     def handle(self):
-#         global sensor_data
-#         try:
-#             while self.data:
-#                 self.data = self.request.recv(1024)
-#                 sensor_data = round(float(self.data), 1)
-#                 #print "{} sent:".format(self.client_address[0])
-#                 print sensor_data
-#         finally:
-#             print "Connection closed on thread 2"
 
 
 
@@ -236,6 +242,23 @@ class NeuralNetwork(object):
 
 
 
+# class SensorDataHandler(SocketServer.BaseRequestHandler):
+#
+#     data = " "
+#
+#     def handle(self):
+#         global sensor_data
+#         try:
+#             while self.data:
+#                 self.data = self.request.recv(1024)
+#                 sensor_data = round(float(self.data), 1)
+#                 #print "{} sent:".format(self.client_address[0])
+#                 print sensor_data
+#         finally:s
+#             print "Connection closed on thread 2"
+
+
+
 
 class PiVideoStream(object):
 
@@ -273,7 +296,7 @@ class PiVideoStream(object):
                 with picamera.array.PiRGBArray(camera) as stream:
                     camera.capture(stream, format='bgr')
 
-                    # image as array
+                    # >>> Need jpg to come through here.
                     self.frame = stream.array
 
 
@@ -284,6 +307,11 @@ class PiVideoStream(object):
 
 
 class ThreadServer(object):
+
+
+    video_stream = PiVideoStream()
+    ultrasonic_stream =
+
 
     def server_thread(host, port):
         server = SocketServer.TCPServer((host, port), PiVideoStream)
@@ -309,5 +337,11 @@ if __name__ == '__main__':
         os.rename(  './test_frames_temp', './test_frames_SAVED/test_frames_{}'.format(timestr))
         os.makedirs('./test_frames_temp')
         print '\nTerminating...\n'
+
+        GPIO.output(left, GPIO.HIGH)
+        GPIO.output(right, GPIO.HIGH)
+        GPIO.output(forward, GPIO.HIGH)
+        GPIO.output(reverse, GPIO.HIGH)
+    	GPIO.cleanup()                     # Release resource
 
         print '\nDone.\n'

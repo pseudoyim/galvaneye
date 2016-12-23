@@ -1,8 +1,6 @@
 import RPi.GPIO as GPIO
 import time
 
-voltage = 1
-ground  = 9
 
 left    = 11
 right   = 12
