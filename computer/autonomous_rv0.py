@@ -292,12 +292,16 @@ class PiVideoStream(object):
                 camera.resolution = (320, 240)      # pi camera resolution
                 camera.framerate = 10               # 10 frames/sec
                 time.sleep(2)                       # give 2 secs for camera to initilize
+                stream = io.BytesIO()
 
-                with picamera.array.PiRGBArray(camera) as stream:
-                    camera.capture(stream, format='bgr')
-
-                    # >>> Need jpg to come through here.
-                    self.frame = stream.array
+                # send jpeg format video stream
+                for foo in camera.capture_continuous(stream, 'jpeg', use_video_port = True):
+                    connection.write(struct.pack('<L', stream.tell()))
+                    connection.flush()
+                    stream.seek(0)
+                    connection.write(stream.read())
+                    stream.seek(0)
+                    stream.truncate()
 
 
 	def read(self):
