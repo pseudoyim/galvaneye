@@ -1,3 +1,7 @@
+'''
+This is same as nn_training.py but adds convolutional layers.
+'''
+
 import csv
 import glob
 import json
